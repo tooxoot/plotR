@@ -4,26 +4,35 @@ const STROKE = 'stroke';
 const FILL = 'fill';
 const NONE = 'none';
 
-export function splitElement(svgChild: HTMLElement): HTMLElement[] {
-    const splitResult: HTMLElement[] = [];
+export class SplitResult {
+    constructor(
+        public outline: HTMLElement = null,
+        public filling: HTMLElement = null
+    ) {};
+}
+
+export function splitElement(svgChild: HTMLElement): SplitResult {
+    const splitResult: SplitResult = new SplitResult();
     if (hasOutline(svgChild)) {
-        const outline: HTMLElement = <HTMLElement>svgChild.cloneNode();
+        splitResult.outline = <HTMLElement>svgChild.cloneNode();
 
-        outline.style.fill = NONE;
-        outline.classList.add('OUTLINE');
+        splitResult.outline.style.fill = NONE;
+        splitResult.outline.style.stroke = 'black';
+        splitResult.outline.style.strokeWidth = '1';
+        splitResult.outline.classList.add('OUTLINE');
 
-        splitResult.push(outline);
-        console.log(outline)
+        console.log(splitResult.outline)
     }
 
     if (isFilled(svgChild)) {
-        const filling: HTMLElement = <HTMLElement>svgChild.cloneNode();
+        splitResult.filling = <HTMLElement>svgChild.cloneNode();
 
-        filling.style.stroke = NONE;
-        filling.classList.add('FILLING');
+        splitResult.filling.style.fill = 'white';
+        splitResult.filling.style.stroke = NONE;
+        splitResult.filling.style.strokeWidth = '1';
+        splitResult.filling.classList.add('FILLING');
 
-        splitResult.push(filling);
-        console.log(filling)
+        console.log(splitResult.filling)
     }
 
     return splitResult;

@@ -1,4 +1,4 @@
-import {extractValues} from './svg.input.processor'
+import {extractValues, ElementResult} from './svg.input.processor'
 import Bezier = require( 'bezier-js' );
 
 
@@ -13,7 +13,7 @@ class Command {
     }
 }
 
-export function convertElement(oldSvgElement: HTMLElement): HTMLElement {
+export function convertElement(oldSvgElement: HTMLElement): ElementResult {
     const dIn = oldSvgElement.getAttribute('d');
     const commands: Command[] = extractCommands(dIn);
     const convertedPoints: [number, number][] = convertCommands(commands);
@@ -139,7 +139,7 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
 
     // Convert the svg curves defined by the controlPoints array into polylines
     while ( controlPoints.length > 1 ) {
-        const curve = new Bezier(controlPoints.slice(0, controlPointNumber));
+        const curve = new Bezier.Bezier(controlPoints.slice(0, controlPointNumber));
         controlPoints.splice(0, controlPointNumber - 1);
         const lookUpTable = curve.getLUT(curve.length() / 10);
 
@@ -152,8 +152,9 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
     return points;
 }
 
-function buildNewSvgElement(oldSvgElement: HTMLElement, dIn: String, convertedPoints: [number, number][]): HTMLElement {
+function buildNewSvgElement(oldSvgElement: HTMLElement, dIn: String, convertedPoints: [number, number][]): ElementResult {
     const newSvgElement = <HTMLElement>oldSvgElement.cloneNode();
+    const processingResult = new ElementResult(null, convertedPoints, false);
 
     let dOut = `M ${convertedPoints[0][0].toFixed(2)} ${convertedPoints[0][1].toFixed(2)} L`;
     convertedPoints.splice(0, 1);
@@ -164,14 +165,18 @@ function buildNewSvgElement(oldSvgElement: HTMLElement, dIn: String, convertedPo
 
     if (dIn.includes('z') || dIn.includes('Z')) {
         dOut += ' Z';
+        processingResult.closed = true;
+    } else {
+        processingResult.closed = false;
     }
-    newSvgElement.setAttribute('d', dOut);
 
+    newSvgElement.setAttribute('d', dOut);
+    processingResult.processedElement = newSvgElement;
     // TODO delete debugin Attributes
     // newSvgElement.setAttribute("style", "")
     // newSvgElement.setAttribute('stroke', 'none')
     // newSvgElement.setAttribute('fill', 'green')
     // newSvgElement.setAttribute('id', 'green')
 
-    return newSvgElement;
+    return processingResult;
 }
