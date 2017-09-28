@@ -139,7 +139,7 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
 
     // Convert the svg curves defined by the controlPoints array into polylines
     while ( controlPoints.length > 1 ) {
-        const curve = new Bezier.Bezier(controlPoints.slice(0, controlPointNumber));
+        const curve = new Bezier(controlPoints.slice(0, controlPointNumber));
         controlPoints.splice(0, controlPointNumber - 1);
         const lookUpTable = curve.getLUT(curve.length() / 10);
 

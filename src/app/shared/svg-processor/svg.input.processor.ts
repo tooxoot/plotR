@@ -1,4 +1,3 @@
-import Bezier = require( 'bezier-js' );
 import {splitElement, SplitResult} from './svg.element.splitter'
 import {convertElement} from './svg.path.processor'
 import {ModelElement} from '../data-model/svg.model'
@@ -36,7 +35,7 @@ export function processSVG(svgRoot: HTMLElement): InputResult {
         console.log('NEXT');
         const childResult = processChild(<HTMLElement>svgRoot.children.item(i));
         processedChildren.push(childResult.outline);
-        processedChildren.push(childResult.filling);
+        // processedChildren.push(childResult.filling);
         inputResult.modelElements.push(childResult.modelElement);
     }
 
