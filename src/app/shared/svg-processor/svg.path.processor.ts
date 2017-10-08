@@ -1,4 +1,4 @@
-import {extractValues, ElementResult} from './svg.input.processor'
+import {extractValues, ChildResult} from './svg.input.processor'
 import Bezier = require( 'bezier-js' );
 
 
@@ -13,12 +13,12 @@ class Command {
     }
 }
 
-export function convertElement(oldSvgElement: HTMLElement): ElementResult {
+export function processPathElement(oldSvgElement: HTMLElement): ChildResult {
     const dIn = oldSvgElement.getAttribute('d');
     const commands: Command[] = extractCommands(dIn);
     const convertedPoints: [number, number][] = convertCommands(commands);
 
-    return buildNewSvgElement(oldSvgElement, dIn, convertedPoints);
+    return buildChildResult(oldSvgElement, dIn, convertedPoints);
 }
 
 function extractCommands(dIn: string): Command[] {
@@ -152,31 +152,10 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
     return points;
 }
 
-function buildNewSvgElement(oldSvgElement: HTMLElement, dIn: String, convertedPoints: [number, number][]): ElementResult {
-    const newSvgElement = <HTMLElement>oldSvgElement.cloneNode();
-    const processingResult = new ElementResult(null, convertedPoints, false);
-
-    let dOut = `M ${convertedPoints[0][0].toFixed(2)} ${convertedPoints[0][1].toFixed(2)} L`;
-    convertedPoints.splice(0, 1);
-
-    convertedPoints.forEach( point => {
-        dOut += ` ${point[0].toFixed(2)} ${point[1].toFixed(2)}`;
-    });
-
-    if (dIn.includes('z') || dIn.includes('Z')) {
-        dOut += ' Z';
-        processingResult.closed = true;
-    } else {
-        processingResult.closed = false;
-    }
-
-    newSvgElement.setAttribute('d', dOut);
-    processingResult.processedElement = newSvgElement;
-    // TODO delete debugin Attributes
-    // newSvgElement.setAttribute("style", "")
-    // newSvgElement.setAttribute('stroke', 'none')
-    // newSvgElement.setAttribute('fill', 'green')
-    // newSvgElement.setAttribute('id', 'green')
+function buildChildResult(oldSvgElement: HTMLElement, dIn: String, convertedPoints: [number, number][]): ChildResult {
+    const processingResult: ChildResult =   {   points: convertedPoints.map(point => ({X: point[0], Y: point[1]}) ),
+                                                closed: dIn.includes('z') || dIn.includes('Z')
+                                            };
 
     return processingResult;
 }

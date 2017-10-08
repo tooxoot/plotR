@@ -1,75 +1,47 @@
 import {splitElement, SplitResult} from './svg.element.splitter'
-import {convertElement} from './svg.path.processor'
-import {ModelElement} from '../data-model/svg.model'
+import {processPathElement} from './svg.path.processor'
+import {ModelElement, GraphicValues, XY} from '../data-model/svg.model'
 
 let elementCount = 0;
 
-export class ElementResult {
-    constructor(
-        public processedElement: HTMLElement ,
-        public values: [number, number][],
-        public closed: boolean
-    ) {};
+
+export interface ChildResult {
+    points: XY[];
+    closed: boolean;
 }
 
-export class ChildResult {
-    constructor(
-        public outline: HTMLElement,
-        public filling: HTMLElement,
-        public modelElement: ModelElement
-    ) {};
-}
-
-export class InputResult {
-    constructor(
-        readonly newSVGRoot: HTMLElement,
-        readonly modelElements: ModelElement[] = []
-    ) {};
-}
-
-export function processSVG(svgRoot: HTMLElement): InputResult {
-    const inputResult = new InputResult(<HTMLElement>svgRoot.cloneNode(false));
-    const processedChildren: HTMLElement[] = [];
+export function processSVG(svgRoot: HTMLElement): ModelElement[] {
+    const inputResult: ModelElement[] = [];
+    // const processedChildren: HTMLElement[] = [];
 
     for (let i = 0; i < svgRoot.children.length; i++) {
-        console.log('NEXT');
         const childResult = processChild(<HTMLElement>svgRoot.children.item(i));
-        processedChildren.push(childResult.outline);
-        // processedChildren.push(childResult.filling);
-        inputResult.modelElements.push(childResult.modelElement);
+        inputResult.push(childResult);
+        elementCount++;
     }
-
-    processedChildren.forEach(processedChild => {
-        inputResult.newSVGRoot.appendChild(processedChild);
-    });
 
     return inputResult;
 }
 
-function processChild(svgChild: HTMLElement): ChildResult {
-    let tempResult: ElementResult;
-    let splitResult: SplitResult;
-    console.log(svgChild);
+function processChild(svgChild: HTMLElement): ModelElement {
+    let tempResult: ChildResult;
 
     switch (svgChild.tagName) {
         case 'path':
-            tempResult = convertElement(svgChild);
-            console.log(tempResult);
+            tempResult = processPathElement(svgChild);
             break;
         default:
             console.error(`Tag-name ${svgChild} not supported!`)
             break;
     }
 
-    splitResult = splitElement(tempResult.processedElement);
-    const modelElement = new ModelElement(  tempResult.values,
-                                            'ID' + elementCount++,
-                                            splitResult.filling == null,
-                                            splitResult.outline == null,
-                                            tempResult.closed
-                                            );
+    return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
+                id: elementCount,
+                filled: isFilled(svgChild),
+                outlined: hasOutline(svgChild),
+                closed: tempResult.closed
+           }
 
-    return new ChildResult(splitResult.outline, splitResult.filling, modelElement);
 }
 
 export function extractValues(rawValues: string): number[] {
@@ -82,4 +54,38 @@ export function extractValues(rawValues: string): number[] {
         values.push( +(currentMatch[1]) );
     }
     return values
+}
+
+
+/**
+ * NOTE: This will also return true if the fill-style is empty and the fill attribute is invalid!
+ * @param svgChild Any child element of an svg
+ * @return True if the given Element is filled with color.
+ */
+function isFilled(svgChild: HTMLElement): boolean {
+    const a: boolean = svgChild.style.fill ? true : false;
+    const b: boolean = svgChild.style.fill !== 'none';
+    const c: boolean = svgChild.getAttribute('fill') !== 'none' ? true : false;
+    return a && b || b && c;
+}
+
+/**
+ *
+ * NOTE: This will also return true if the stroke-style is empty and the stroke attribute is invalid!
+ * The Same is applicable for the stroke-width.
+ * @param svgChild Any child element of an svg
+ * @return True if the given Element has an outlining stroke.
+ */
+function hasOutline(svgChild: HTMLElement): boolean {
+    const a: boolean = svgChild.style.stroke ? true : false;
+    const b: boolean = svgChild.style.stroke !== 'none';
+    const c: boolean = svgChild.getAttribute('stroke') ? true : false;
+    const strokeDefined: boolean = a && b || b && c;
+
+    const d: boolean = svgChild.style.strokeWidth ? true : false;
+    const e: boolean = svgChild.style.strokeWidth !== '0';
+    const f: boolean = svgChild.getAttribute('stroke-width') !== '0';
+    const widthDefined: boolean = d && e || e && f;
+
+    return strokeDefined && widthDefined;
 }
