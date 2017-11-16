@@ -1,8 +1,10 @@
-*
+.vscode/
+e2e/
+node_modules/
 
-!*/
-!/src/app/shared/*
-!/src/app/shared/*/*
-
-
-
+/*.*
+src/*.*
+src/assets/
+src/environments
+src/app/*.*
+src/app/shared/*.*
