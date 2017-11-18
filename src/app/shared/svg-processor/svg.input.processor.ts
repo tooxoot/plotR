@@ -1,8 +1,6 @@
-import {splitElement, SplitResult} from './svg.element.splitter'
+// import {splitElement, SplitResult} from './svg.element.splitter'
 import {processPathElement} from './svg.path.processor'
-import {ModelElement, GraphicValues, XY} from '../data-model/svg.model'
-
-let elementCount = 0;
+import {ModelElement, GraphicValues, XY, getNextId} from '../data-model/svg.model'
 
 
 export interface ChildResult {
@@ -12,12 +10,10 @@ export interface ChildResult {
 
 export function processSVG(svgRoot: HTMLElement): ModelElement[] {
     const inputResult: ModelElement[] = [];
-    // const processedChildren: HTMLElement[] = [];
 
     for (let i = 0; i < svgRoot.children.length; i++) {
         const childResult = processChild(<HTMLElement>svgRoot.children.item(i));
         inputResult.push(childResult);
-        elementCount++;
     }
 
     return inputResult;
@@ -36,7 +32,7 @@ function processChild(svgChild: HTMLElement): ModelElement {
     }
 
     return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
-                id: elementCount,
+                id: getNextId(),
                 filled: isFilled(svgChild),
                 outlined: hasOutline(svgChild),
                 closed: tempResult.closed
