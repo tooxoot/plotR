@@ -1,4 +1,4 @@
-// TODO use HTTPELEMENT instead of Element
+// NOT NEEDED?
 
 const STROKE = 'stroke';
 const FILL = 'fill';
@@ -7,33 +7,33 @@ const NONE = 'none';
 export class SplitResult {
     constructor(
         public outline: HTMLElement = null,
-        public filling: HTMLElement = null
+        public filling: HTMLElement = null,
+        public filled: boolean = false,
+        public outlined: boolean = false,
     ) {};
 }
 
 export function splitElement(svgChild: HTMLElement): SplitResult {
     const splitResult: SplitResult = new SplitResult();
-    if (hasOutline(svgChild)) {
-        splitResult.outline = <HTMLElement>svgChild.cloneNode();
+    const outlined = hasOutline(svgChild)
+    const filled = isFilled(svgChild)
 
-        splitResult.outline.style.fill = NONE;
-        splitResult.outline.style.stroke = 'black';
-        splitResult.outline.style.strokeWidth = '1';
-        splitResult.outline.classList.add('OUTLINE');
+    splitResult.outline = <HTMLElement>svgChild.cloneNode();
 
-        console.log(splitResult.outline)
-    }
+    splitResult.outline.style.fill = NONE;
+    splitResult.outline.style.stroke = outlined ? 'black' : 'none';
+    splitResult.outline.style.strokeWidth = '1';
+    splitResult.outline.classList.add('OUTLINE');
 
-    if (isFilled(svgChild)) {
-        splitResult.filling = <HTMLElement>svgChild.cloneNode();
+    splitResult.filling = <HTMLElement>svgChild.cloneNode();
 
-        splitResult.filling.style.fill = 'white';
-        splitResult.filling.style.stroke = NONE;
-        splitResult.filling.style.strokeWidth = '1';
-        splitResult.filling.classList.add('FILLING');
+    splitResult.filling.style.fill = filled ? 'grey' : 'none';
+    splitResult.filling.style.stroke = NONE;
+    splitResult.filling.style.strokeWidth = '1';
+    splitResult.filling.classList.add('FILLING');
 
-        console.log(splitResult.filling)
-    }
+    splitResult.outlined = outlined;
+    splitResult.filled = filled;
 
     return splitResult;
 }
