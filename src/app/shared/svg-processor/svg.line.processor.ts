@@ -8,8 +8,8 @@ export function processLineElement(svgChild: HTMLElement): ChildResult {
     const y2 = +(svgChild.getAttribute('y2'));
 
     const polyPoints: XY[] = [
-        {X: x1, Y: x2},
-        {X: y1, Y: y2},
+        {X: x1, Y: y1},
+        {X: x2, Y: y2},
     ];
 
     return {

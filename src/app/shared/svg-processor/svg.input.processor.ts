@@ -48,7 +48,7 @@ function processChild(svgChild: HTMLElement): ModelElement {
                                                  +(svgChild.getAttribute('height')),
                                                 )
             break;
-        case 'circel':
+        case 'circle':
             tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
                                                +(svgChild.getAttribute('cy')),
                                                +(svgChild.getAttribute('r')),
