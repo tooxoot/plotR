@@ -1,6 +1,11 @@
 // import {splitElement, SplitResult} from './svg.element.splitter'
 import {processPathElement} from './svg.path.processor'
+import {processLineElement} from './svg.line.processor'
+import {processPolylineElement} from './svg.polyline.processor'
+import {processEllipseElement} from './svg.ellipse.processor'
+import {processRectangleElement} from './svg.rectangle.processor'
 import {ModelElement, GraphicValues, XY, getNextId} from '../data-model/svg.model'
+import {transform} from './svg.transformation.processor'
 
 
 export interface ChildResult {
@@ -8,10 +13,6 @@ export interface ChildResult {
     closed: boolean;
 }
 
-interface Transformation {
-    type: string;
-    values: number[];
-}
 
 export function processSVG(svgRoot: HTMLElement): ModelElement[] {
     const inputResult: ModelElement[] = [];
@@ -28,40 +29,39 @@ function processChild(svgChild: HTMLElement): ModelElement {
     let tempResult: ChildResult;
 
     switch (svgChild.tagName) {
+        case 'line':
+            tempResult = processLineElement(svgChild);
+            break;
+
+        case 'polyline':
+            tempResult = processPolylineElement(svgChild);
+            break;
+
+        case 'polygon':
+            tempResult = processPolylineElement(svgChild, true);
+            break;
+
+        case 'rect':
+            tempResult = processRectangleElement(+(svgChild.getAttribute('x')),
+                                                 +(svgChild.getAttribute('y')),
+                                                 +(svgChild.getAttribute('width')),
+                                                 +(svgChild.getAttribute('height')),
+                                                )
+            break;
         case 'circel':
-            // TODO extract
-            // const cx = +(svgChild.getAttribute('cx'));
-            // const cy = +(svgChild.getAttribute('cy'));
-            // const rx = +(svgChild.getAttribute('r'));
-            // const ry = +(svgChild.getAttribute('r'));
-            // const transformation = extractTransformation(svgChild);
+            tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
+                                               +(svgChild.getAttribute('cy')),
+                                               +(svgChild.getAttribute('r')),
+                                               +(svgChild.getAttribute('r'))
+                                              )
+            break;
+
         case 'ellipse':
-            // TODO extract
-            const cx = +(svgChild.getAttribute('cx'));
-            const cy = +(svgChild.getAttribute('cy'));
-            const rx = +(svgChild.getAttribute('rx'));
-            const ry = +(svgChild.getAttribute('ry'));
-            const transformation = extractTransformation(svgChild);
-            const polyPoints: XY[] = [];
-
-            for (let angle = 0; angle < 180; angle++) {
-                const radians = (Math.PI / 180) * angle
-                const cos = Math.cos(radians)
-                const sin = Math.sin(radians)
-
-                polyPoints.push({
-                    X: rx * cos + cx,
-                    Y: rx * sin + cx
-                });
-            }
-
-            //TODO extract to apply to all tags
-            applyTransform(polyPoints, transformation)
-
-            tempResult = {
-                points: polyPoints,
-                closed: true
-            }
+            tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
+                                               +(svgChild.getAttribute('cy')),
+                                               +(svgChild.getAttribute('rx')),
+                                               +(svgChild.getAttribute('ry'))
+                                              )
             break;
 
         case 'path':
@@ -72,6 +72,10 @@ function processChild(svgChild: HTMLElement): ModelElement {
             break;
     }
 
+    if (svgChild.getAttribute('transform')) {
+        tempResult.points = transform(tempResult.points, svgChild)
+    }
+
     return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
                 id: getNextId(),
                 filled: isFilled(svgChild),
@@ -79,19 +83,6 @@ function processChild(svgChild: HTMLElement): ModelElement {
                 closed: tempResult.closed
            }
 
-}
-
-export function extractTransformation(svgChild: HTMLElement): Transformation {
-    // TODO
-    return {
-        type: '',
-        values: []
-    }
-}
-
-export function applyTransform(points: XY[], transformation: Transformation): XY[] {
-    // TODO
-    return points;
 }
 
 export function extractValues(rawValues: string): number[] {
@@ -105,7 +96,6 @@ export function extractValues(rawValues: string): number[] {
     }
     return values
 }
-
 
 /**
  * NOTE: This will also return true if the fill-style is empty and the fill attribute is invalid!
