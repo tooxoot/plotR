@@ -63,9 +63,6 @@ function applyTransformation(points: XY[], transformation: Transformation): XY[]
             ]
 
             newPoints = points.map(point => applyMatrix(point, matrix));
-
-            console.log('rot')
-            console.log(points, sx, sy, newPoints);
             break;
 
         case 'rotate':
