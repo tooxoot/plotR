@@ -2,6 +2,13 @@ import {ModelElement} from './svg.model'
 import ClipperLib = require('clipper-lib');
 import {XY, ClipStruct} from '../types'
 
+export enum ClipType {
+    Intersect = 0,
+    Union = 1,
+    Difference = 2,
+    Xore = 3
+};
+
 /**
  * This module contains functions which take care of clipping ModelElements.
  */
@@ -61,15 +68,19 @@ export module ClipUtils {
      *                      With this option enabled holes are possible!
      * @return An array consisting of the clipping results.
      */
-    export function clipTwo(subject: ModelElement, clippingElement: ModelElement, regardClosing: boolean = false): ModelElement[] {
+    export function clipTwo(
+        subject: ModelElement,
+        clippingElement: ModelElement,
+        regardClosing: boolean = false,
+        clipType: ClipType = ClipType.Difference
+    ): ModelElement[] {
         const clipper = new ClipperLib.Clipper();
         const solutionTree = new ClipperLib.PolyTree();
         const clippingPoints = subject.closed ? subject.points.concat(subject.points[0]) : subject.points;
 
         clipper.AddPath(clippingPoints, ClipperLib.PolyType.ptSubject, regardClosing && subject.closed);
         clipper.AddPath(clippingElement.points, ClipperLib.PolyType.ptClip, true);
-
-        clipper.Execute(  ClipperLib.ClipType.ctDifference,
+        clipper.Execute(  clipType,
                         solutionTree,
                         ClipperLib.PolyFillType.pftNonZero,
                         ClipperLib.PolyFillType.pftNonZero
@@ -85,7 +96,6 @@ export module ClipUtils {
                 closed: regardClosing && subject.closed,
                 filled: regardClosing && subject.filled,
                 outlined: subject.outlined,
-                id: subject.id,
             }
         });
     }
