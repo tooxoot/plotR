@@ -4,7 +4,7 @@ import {processLineElement} from './svg.line.processor'
 import {processPolylineElement} from './svg.polyline.processor'
 import {processEllipseElement} from './svg.ellipse.processor'
 import {processRectangleElement} from './svg.rectangle.processor'
-import {ModelElement, GraphicValues, XY, getNextId} from '../data-model/svg.model'
+import {ModelElement, GraphicValues, XY} from '../data-model/svg.model'
 import {transform} from './svg.transformation.processor'
 
 
@@ -77,7 +77,6 @@ function processChild(svgChild: HTMLElement): ModelElement {
     }
 
     return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
-                id: getNextId(),
                 filled: isFilled(svgChild),
                 outlined: hasOutline(svgChild),
                 closed: tempResult.closed

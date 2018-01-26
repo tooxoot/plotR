@@ -11,33 +11,59 @@ export interface GraphicValues {
 
 export interface ModelElement {
     points: XY[];
-    id: number;
     filled: boolean;
     outlined: boolean;
     closed: boolean;
     graphicValues?: GraphicValues;
+    id?: number;
+    position?: number;
 }
 
 class Model {
-    readonly elements: ModelElement[] = [];
-    constructor( readonly dimensions: XY) {};
+    readonly elements: { [key: number]: ModelElement; } = {}
+    private idCount = 0;
+    readonly center: XY;
 
-    public getElement(id: number): ModelElement {
-        return this.elements.find( (e) => {
-            return e.id === id
-        } );
+    constructor( readonly dimensions: XY) {
+        this.center = {X: dimensions.X / 2, Y: dimensions.Y / 2}
+    };
+
+    private nextID(): number {
+        return this.idCount++;
     }
 
-    public pushAfter(id: number, ...items: ModelElement[]) {
-        const i = this.elements.findIndex(e => e.id === id);
-        this.elements.splice(i + 1, 0, ...items);
+    public getElements(...ids: number[]): ModelElement[] {
+        const returnedElements: ModelElement[] = [];
+
+        if (ids.length === 0) {
+            Object.keys(this.elements).forEach(id => returnedElements.push(this.elements[id]))
+        } else {
+            ids.forEach(id => returnedElements.push(this.elements[id]));
+        }
+
+        return returnedElements.sort((a, b) => a.position - b.position);
+    }
+
+    public remove(id: number): number {
+        delete this.elements[id];
+        return 1;
+    }
+
+    public push(...pushedElements: ModelElement[]) {
+        this.pushAt(-1, ...pushedElements)
+    }
+
+    public pushAt(position: number, ...pushedElements: ModelElement[]) {
+        let currentId: number;
+
+        pushedElements.forEach(element => {
+            currentId = this.nextID();
+            element.id = currentId;
+            element.position = position >= 0 ? position : currentId;
+            this.elements[currentId] = element
+        });
+
     }
 }
 
-export const MODEL = new Model({X: 500, Y: 500});
-
-let modelElementCount = 0;
-
-export function getNextId(): number {
-    return modelElementCount++;
-}
+export const MODEL = new Model({X: 50000, Y: 50000});
