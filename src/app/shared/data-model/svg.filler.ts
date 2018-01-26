@@ -1,98 +1,116 @@
-import {XY, ModelElement, MODEL, getNextId} from './svg.model'
+import {XY, ModelElement, MODEL} from './svg.model'
+import { element } from 'protractor';
+import {ClipUtils, ClipType} from './svg.clipping'
 
-interface Progression {
+export interface Progression {
     start: DrawInitials;
     // delta: XY;
     bounding: [XY, XY];
+    previousResultsBounding?: Bounding;
     next(currentInitials: DrawInitials): DrawInitials;
 }
 
-interface DrawInitials {
+export interface DrawInitials {
     position: XY;
     angle?: number;
 }
 
-function createFillingElements(progression: Progression, drawingCallback: (DrawInitials) => ModelElement[] ): ModelElement[] {
+export interface Bounding {
+    minX?: number;
+    maxX?: number;
+    minY?: number;
+    maxY?: number;
+}
+
+export function clipFilling(fillingElements: ModelElement[], boundingElement: ModelElement, regardClosing = false): ModelElement[] {
+    const clippedFillings: ModelElement[] = [];
+
+    fillingElements.forEach( fillingElement => {
+        const results = ClipUtils.clipTwo(fillingElement, boundingElement, regardClosing, ClipType.Intersect);
+        clippedFillings.push(...results);
+    });
+
+    return clippedFillings;
+}
+
+export function createFillingElements(progression: Progression, drawingCallback: (DrawInitials) => ModelElement[] ): ModelElement[] {
     const result: ModelElement[] = [];
     // let delta = progression.delta;
-    let initials: DrawInitials = progression.start;
+    let currentInitials: DrawInitials = progression.start;
 
-    while (initials) {
-        result.push(...drawingCallback(initials));
-        initials = progression.next(initials);
+    while (currentInitials) {
+        result.push(...drawingCallback(currentInitials));
+        currentInitials = progression.next(currentInitials);
     }
 
     return result;
 }
 
-function getLinearProgression(start: DrawInitials, delta: XY, bounding: [XY, XY], bidirectional: boolean = false): Progression {
-    let stepCount = 0;
 
-    const next = (currentInitials: DrawInitials) => {
-        stepCount++;
-
-        return { position: add(currentInitials.position, delta)};
-
-    }
-
-    return {
-        start: start,
-        bounding: bounding,
-        next: next
-    }
-}
-
-function drawLines(progression: Progression, angle: number): ModelElement[] {
-    const result: ModelElement[] = []
-
-    const drawLine = getDrawLineCallBack(angle);
-
-    return createFillingElements(progression, drawLine);
-}
-
-function getDrawLineCallBack(angle: number): (initials: DrawInitials) => ModelElement[] {
-    const dimX = MODEL.dimensions.X;
-    const dimY = MODEL.dimensions.Y;
-    const center = {X: dimX / 2, Y: dimY / 2};
-
-    let lEnd = {X: 0, Y: dimY / 2};
-    let rEnd = {X: dimX, Y: dimY / 2};
-
-    lEnd = rotate(center, lEnd, angle);
-    rEnd = rotate(center, rEnd, angle);
-
-    return function(initials: DrawInitials): ModelElement[] {
-        const delta = {X: center.X - initials.position.X, Y: center.Y - initials.position.Y};
-        const p1 = add(lEnd, delta)
-        const p2 = add(rEnd, delta)
-
-        return [{
-            points: [p1, p2],
-            id: getNextId(),
-            filled: false,
-            outlined: true,
-            closed: false,
-        }]
-    }
-}
-
-function checkBounding(point: XY, bounding: [XY, XY]): boolean {
-    return checkXY(point, bounding[1].X, bounding[1].Y, bounding[0].X, bounding[1].X);
-}
-function checkXY(point: XY, maxX?: number, maxY?: number, minX?: number, minY?: number): boolean {
-    const fitsMaxX = maxX ? (point.X <= maxX) : true;
-    const fitsMaxY = maxY ? (point.Y <= maxY) : true;
-    const fitsMinX = minX ? (point.X >= minX) : true;
-    const fitsMinY = minY ? (point.Y >= minY) : true;
+function checkBounding(point: XY, bounding: Bounding): boolean {
+    const fitsMaxX = bounding.maxX ? (point.X <= bounding.maxX) : true;
+    const fitsMaxY = bounding.maxY ? (point.Y <= bounding.maxY) : true;
+    const fitsMinX = bounding.minX ? (point.X >= bounding.minX) : true;
+    const fitsMinY = bounding.minY ? (point.Y >= bounding.minY) : true;
 
     return fitsMaxX && fitsMaxY && fitsMinX && fitsMinY;
 }
 
-function add(...vectors: XY[]): XY {
+function checkBoundingOverlap(boundingA: Bounding, boundingB: Bounding) {
+    const pointA = {X: boundingA.minX, Y: boundingA.minY}
+    const pointB = {X: boundingA.maxX, Y: boundingA.minY}
+    const pointC = {X: boundingA.maxX, Y: boundingA.maxY}
+    const pointD = {X: boundingA.minX, Y: boundingA.maxY}
+
+    const pointAInBoundingB = checkBounding(pointA, boundingB);
+    const pointBInBoundingB = checkBounding(pointB, boundingB);
+    const pointCInBoundingB = checkBounding(pointC, boundingB);
+    const pointDInBoundingB = checkBounding(pointD, boundingB);
+
+    return pointAInBoundingB || pointBInBoundingB || pointCInBoundingB || pointDInBoundingB;
+}
+
+export function getBoundingBox(...modelElements: ModelElement[]): Bounding {
+    const initialBounding = {
+        minX: Number.MAX_VALUE,
+        maxX: Number.MIN_VALUE,
+        minY: Number.MAX_VALUE,
+        maxY: Number.MIN_VALUE
+    }
+
+    const bounding = modelElements.reduce((currentBounding: Bounding, element) => {
+        element.points.forEach(point => {
+            if (point.X < currentBounding.minX) { currentBounding.minX = point.X; }
+            if (point.X > currentBounding.maxX) { currentBounding.maxX = point.X; }
+            if (point.Y < currentBounding.minY) { currentBounding.minY = point.Y; }
+            if (point.Y > currentBounding.maxY) { currentBounding.maxY = point.Y; }
+        })
+
+        return currentBounding;
+    }, initialBounding);
+
+    return bounding;
+}
+
+function test() {
+    const a = [{X: 0, Y: 0}, {X: 0, Y: 0}];
+    const b = [{X: Number.MIN_VALUE, Y: Number.MIN_VALUE}, {X: Number.MAX_VALUE, Y: Number.MAX_VALUE}]
+}
+
+
+export function add(...vectors: XY[]): XY {
     return vectors.reduce((acc, val) => ({X: acc.X + val.X, Y: acc.Y + val.Y  }), {X: 0, Y: 0})
 }
 
-function rotate(center: XY, p: XY, angle: number): XY {
+export function subtract(...vectors: XY[]): XY {
+    return vectors.reduce((acc, val) => ({X: acc.X - val.X, Y: acc.Y - val.Y  }));
+}
+
+export function scale(scalar: number, vector: XY): XY {
+    return {X: vector.X * scalar, Y: vector.Y * scalar}
+}
+
+export function rotate(center: XY, p: XY, angle: number): XY {
     const radians = (Math.PI / 180) * angle
     const cos = Math.cos(radians)
     const sin = Math.sin(radians)
