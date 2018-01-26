@@ -1,7 +1,7 @@
 .vscode/
 e2e/
 node_modules/
-
+backup/
 /*.*
 src/*.*
 src/assets/
