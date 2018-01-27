@@ -1,5 +1,5 @@
-import {XY} from '../data-model/svg.model'
-import {ChildResult} from './svg.input.processor';
+import { XY } from '../data-model/svg.model';
+import { ChildResult } from './svg.input.processor';
 
 export function processRectangleElement(x: number, y: number, width: number, height: number): ChildResult {
     const polyPoints: XY[] = [
@@ -12,5 +12,5 @@ export function processRectangleElement(x: number, y: number, width: number, hei
     return {
         points: polyPoints,
         closed: true
-    }
+    };
 }

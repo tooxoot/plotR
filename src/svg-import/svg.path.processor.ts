@@ -1,13 +1,12 @@
-import {extractValues, ChildResult} from './svg.input.processor'
+import { extractValues, ChildResult } from './svg.input.processor';
 import Bezier = require( 'bezier-js' );
-
 
 class Command {
     constructor(
         public indicator: string,
         public rawValues: string,
         public values: number[]
-        ) {};
+        ) {}
     toString(): string {
         return `{indicator: ${this.indicator}, rawValues: ${this.rawValues}, values: ${this.values} }`;
     }
@@ -49,7 +48,7 @@ function convertCommands(commands: Command[]): [number, number][] {
                 break;
             case 'l':
                 while ( command.values.length > 0 ) {
-                    xyPair = [command.values.shift(), command.values.shift()]
+                    xyPair = [command.values.shift(), command.values.shift()];
                     points.push( [points[last][0] + xyPair[0], points[last][1] + xyPair[1]] );
                     last++;
                 }
@@ -87,16 +86,19 @@ function convertCommands(commands: Command[]): [number, number][] {
                 points = points.concat(convertBezierCurves(command.indicator, controlPoints));
                 break;
             default:
-                console.error(`Command ${command.indicator} not specified!`)
+                console.error(`Command ${command.indicator} not specified!`);
                 break;
         }
     });
 
-
     return points;
 }
 
-function convertBezierValues(indicator: string, values: number[], lastPoint: {x: number, y: number}): {x: number, y: number}[] {
+function convertBezierValues(
+    indicator: string,
+    values: number[],
+    lastPoint: {x: number, y: number}
+): {x: number, y: number}[] {
     const convertedPoints: {x: number, y: number}[] = [ lastPoint, lastPoint ];
     let currentPoint: {x: number, y: number};
 
@@ -104,12 +106,14 @@ function convertBezierValues(indicator: string, values: number[], lastPoint: {x:
     while ( values.length > 0 ) {
 
         // Reflect last Anchor for the smooth curve commands
-        if ( ['S', 's', 'T', 't'].includes(indicator) && ( ['T', 't'].includes(indicator) || reflectionindicator % 2 === 0 ) ) {
+        if ( ['S', 's', 'T', 't'].indexOf(indicator) >= 0
+             && ( ['T', 't'].indexOf(indicator) >= 0
+             || reflectionindicator % 2 === 0 ) ) {
             const reflectedAnchorX = convertedPoints[convertedPoints.length - 2].x;
             const reflectedAnchorY = convertedPoints[convertedPoints.length - 2].y;
             const fixPointX        = convertedPoints[convertedPoints.length - 1].x;
             const fixPointY        = convertedPoints[convertedPoints.length - 1].y;
-            const reflectionResult = { x: 2 * fixPointX - reflectedAnchorX, y: 2 * fixPointY - reflectedAnchorY }
+            const reflectionResult = { x: 2 * fixPointX - reflectedAnchorX, y: 2 * fixPointY - reflectedAnchorY };
             convertedPoints.push( reflectionResult );
         }
         reflectionindicator++;
@@ -117,7 +121,7 @@ function convertBezierValues(indicator: string, values: number[], lastPoint: {x:
         currentPoint = {x: values.shift(), y: values.shift()};
 
         // Calculate absolute values from relative commands
-        if ( ['q', 'c', 's', 't'].includes(indicator) ) {
+        if ( ['q', 'c', 's', 't'].indexOf(indicator) >= 0 ) {
             currentPoint.x += convertedPoints[convertedPoints.length - 1].x;
             currentPoint.y += convertedPoints[convertedPoints.length - 1].y;
         }
@@ -135,7 +139,7 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
 
     let controlPointNumber = 3;
     // For cubic curves there is one more control-point
-    if ( ['C', 'c', 'S', 's'].includes(indicator) ) { controlPointNumber = 4 };
+    if ( ['C', 'c', 'S', 's'].indexOf(indicator) >= 0 ) { controlPointNumber = 4; }
 
     // Convert the svg curves defined by the controlPoints array into polylines
     while ( controlPoints.length > 1 ) {

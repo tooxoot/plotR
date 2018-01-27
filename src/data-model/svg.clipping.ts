@@ -1,13 +1,12 @@
-import {ModelElement} from './svg.model'
+import { ModelElement, XY } from './svg.model';
 import ClipperLib = require('clipper-lib');
-import {XY, ClipStruct} from '../types'
 
 export enum ClipType {
     Intersect = 0,
     Union = 1,
     Difference = 2,
     Xore = 3
-};
+}
 
 /**
  * This module contains functions which take care of clipping ModelElements.
@@ -26,7 +25,7 @@ export module ClipUtils {
             solution.push(...clipMultipleClips(subjects[i], subjects.slice(i + 1)));
         }
 
-        solution.push(subjects[subjects.length - 1])
+        solution.push(subjects[subjects.length - 1]);
 
         return solution;
     }
@@ -55,8 +54,8 @@ export module ClipUtils {
         let solution: ModelElement[] = [];
 
         subjects.forEach(subject => {
-            const temp = clipTwo(subject, clippingElement)
-            solution = solution.concat(temp)
+            const temp = clipTwo(subject, clippingElement);
+            solution = solution.concat(temp);
         });
 
         return solution;
@@ -80,7 +79,7 @@ export module ClipUtils {
 
         clipper.AddPath(clippingPoints, ClipperLib.PolyType.ptSubject, regardClosing && subject.closed);
         clipper.AddPath(clippingElement.points, ClipperLib.PolyType.ptClip, true);
-        clipper.Execute(  clipType,
+        clipper.Execute(clipType,
                         solutionTree,
                         ClipperLib.PolyFillType.pftNonZero,
                         ClipperLib.PolyFillType.pftNonZero
@@ -96,7 +95,7 @@ export module ClipUtils {
                 closed: regardClosing && subject.closed,
                 filled: regardClosing && subject.filled,
                 outlined: subject.outlined,
-            }
+            };
         });
     }
 }

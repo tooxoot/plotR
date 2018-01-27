@@ -1,5 +1,5 @@
-import {XY} from '../data-model/svg.model'
-import {ChildResult} from './svg.input.processor';
+import { XY } from '../data-model/svg.model';
+import { ChildResult } from './svg.input.processor';
 
 export function processLineElement(svgChild: HTMLElement): ChildResult {
     const x1 = +(svgChild.getAttribute('x1'));
@@ -15,5 +15,5 @@ export function processLineElement(svgChild: HTMLElement): ChildResult {
     return {
         points: polyPoints,
         closed: false
-    }
+    };
 }

@@ -1,5 +1,5 @@
-import {XY, ClipStruct} from '../types'
-import {ModelElement} from '../data-model/svg.model'
+import { XY } from '../data-model/svg.model';
+import { ModelElement } from '../data-model/svg.model';
 
 export function calculateSVGString(modelElement: ModelElement): string {
     const idString = 'SVG_ELEMENT_' + modelElement.id;
@@ -18,7 +18,7 @@ function calcDString(modelElement: ModelElement): string {
       result += ` ${point.X / 100} ${point.Y / 100}`;
     });
 
-    if (modelElement.closed) { result += ' Z'}
+    if (modelElement.closed) { result += ' Z'; }
 
-    return result
+    return result;
 }

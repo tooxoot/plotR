@@ -1,24 +1,22 @@
 // import {splitElement, SplitResult} from './svg.element.splitter'
-import {processPathElement} from './svg.path.processor'
-import {processLineElement} from './svg.line.processor'
-import {processPolylineElement} from './svg.polyline.processor'
-import {processEllipseElement} from './svg.ellipse.processor'
-import {processRectangleElement} from './svg.rectangle.processor'
-import {ModelElement, GraphicValues, XY} from '../data-model/svg.model'
-import {transform} from './svg.transformation.processor'
-
+import { processPathElement } from './svg.path.processor';
+import { processLineElement } from './svg.line.processor';
+import { processPolylineElement } from './svg.polyline.processor';
+import { processEllipseElement } from './svg.ellipse.processor';
+import { processRectangleElement } from './svg.rectangle.processor';
+import { ModelElement, GraphicValues, XY } from '../data-model/svg.model';
+import { transform } from './svg.transformation.processor';
 
 export interface ChildResult {
     points: XY[];
     closed: boolean;
 }
 
-
 export function processSVG(svgRoot: HTMLElement): ModelElement[] {
     const inputResult: ModelElement[] = [];
 
     for (let i = 0; i < svgRoot.children.length; i++) {
-        const childResult = processChild(<HTMLElement>svgRoot.children.item(i));
+        const childResult = processChild(<HTMLElement> svgRoot.children.item(i));
         inputResult.push(childResult);
     }
 
@@ -46,14 +44,14 @@ function processChild(svgChild: HTMLElement): ModelElement {
                                                  +(svgChild.getAttribute('y')),
                                                  +(svgChild.getAttribute('width')),
                                                  +(svgChild.getAttribute('height')),
-                                                )
+                                                );
             break;
         case 'circle':
             tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
                                                +(svgChild.getAttribute('cy')),
                                                +(svgChild.getAttribute('r')),
                                                +(svgChild.getAttribute('r'))
-                                              )
+                                              );
             break;
 
         case 'ellipse':
@@ -61,39 +59,39 @@ function processChild(svgChild: HTMLElement): ModelElement {
                                                +(svgChild.getAttribute('cy')),
                                                +(svgChild.getAttribute('rx')),
                                                +(svgChild.getAttribute('ry'))
-                                              )
+                                              );
             break;
 
         case 'path':
             tempResult = processPathElement(svgChild);
             break;
             default:
-            console.error(`Tag-name ${svgChild} not supported!`)
+            console.error(`Tag-name ${svgChild} not supported!`);
             break;
     }
 
     if (svgChild.getAttribute('transform')) {
-        tempResult.points = transform(tempResult.points, svgChild)
+        tempResult.points = transform(tempResult.points, svgChild);
     }
 
     return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
                 filled: isFilled(svgChild),
                 outlined: hasOutline(svgChild),
                 closed: tempResult.closed
-           }
+           };
 
 }
 
 export function extractValues(rawValues: string): number[] {
-    const values: number[] = []
+    const values: number[] = [];
     const scanForCoordinates = /[,\t ]*(-{0,1}[\d\.]{1,})/g;
 
     let currentMatch;
     while (currentMatch = scanForCoordinates.exec(rawValues.trim())) {
-        if (currentMatch[0] === '') { break };
+        if (currentMatch[0] === '') { break; }
         values.push( +(currentMatch[1]) );
     }
-    return values
+    return values;
 }
 
 /**

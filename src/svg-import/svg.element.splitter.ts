@@ -10,22 +10,22 @@ export class SplitResult {
         public filling: HTMLElement = null,
         public filled: boolean = false,
         public outlined: boolean = false,
-    ) {};
+    ) {}
 }
 
 export function splitElement(svgChild: HTMLElement): SplitResult {
     const splitResult: SplitResult = new SplitResult();
-    const outlined = hasOutline(svgChild)
-    const filled = isFilled(svgChild)
+    const outlined = hasOutline(svgChild);
+    const filled = isFilled(svgChild);
 
-    splitResult.outline = <HTMLElement>svgChild.cloneNode();
+    splitResult.outline = <HTMLElement> svgChild.cloneNode();
 
     splitResult.outline.style.fill = NONE;
     splitResult.outline.style.stroke = outlined ? 'black' : 'none';
     splitResult.outline.style.strokeWidth = '1';
     splitResult.outline.classList.add('OUTLINE');
 
-    splitResult.filling = <HTMLElement>svgChild.cloneNode();
+    splitResult.filling = <HTMLElement> svgChild.cloneNode();
 
     splitResult.filling.style.fill = filled ? 'grey' : 'none';
     splitResult.filling.style.stroke = NONE;
