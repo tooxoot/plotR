@@ -20,23 +20,19 @@ export interface ModelElement {
 }
 
 class Model {
-    readonly elements: { [key: number]: ModelElement; } = {}
-    private idCount = 0;
+    readonly elements: { [key: number]: ModelElement; } = {};
     readonly center: XY;
+    private idCount = 0;
 
     constructor( readonly dimensions: XY) {
-        this.center = {X: dimensions.X / 2, Y: dimensions.Y / 2}
-    };
-
-    private nextID(): number {
-        return this.idCount++;
+        this.center = {X: dimensions.X / 2, Y: dimensions.Y / 2};
     }
 
     public getElements(...ids: number[]): ModelElement[] {
         const returnedElements: ModelElement[] = [];
 
         if (ids.length === 0) {
-            Object.keys(this.elements).forEach(id => returnedElements.push(this.elements[id]))
+            Object.keys(this.elements).forEach(id => returnedElements.push(this.elements[id]));
         } else {
             ids.forEach(id => returnedElements.push(this.elements[id]));
         }
@@ -50,7 +46,7 @@ class Model {
     }
 
     public push(...pushedElements: ModelElement[]) {
-        this.pushAt(-1, ...pushedElements)
+        this.pushAt(-1, ...pushedElements);
     }
 
     public pushAt(position: number, ...pushedElements: ModelElement[]) {
@@ -60,9 +56,13 @@ class Model {
             currentId = this.nextID();
             element.id = currentId;
             element.position = position >= 0 ? position : currentId;
-            this.elements[currentId] = element
+            this.elements[currentId] = element;
         });
 
+    }
+
+    private nextID(): number {
+        return this.idCount++;
     }
 }
 

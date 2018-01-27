@@ -1,4 +1,4 @@
-import {ModelElement, XY} from '../data-model/svg.model'
+import { ModelElement, XY } from '../data-model/svg.model';
 
 export module HPGLUtils {
 
@@ -18,9 +18,9 @@ export module HPGLUtils {
     export function convertToHPGL(modelElements: ModelElement[], scaling: Scaling): string[] {
         const result: string[] = [];
 
-        result.push('IN;')
-        result.push('VS1;')
-        result.push('SP1;')
+        result.push('IN;');
+        result.push('VS1;');
+        result.push('SP1;');
 
         modelElements.forEach(modelElement => {
             result.push(...convertElement(modelElement, scaling));
@@ -35,12 +35,12 @@ export module HPGLUtils {
      */
     function convertElement(modelElement: ModelElement, scaling: Scaling): string[] {
         const result: string[] = [];
-        const scaledPoints = modelElement.points.map(point => scale(point, scaling))
+        const scaledPoints = modelElement.points.map(point => scale(point, scaling));
         const firstPoint = scaledPoints[0];
         let pathString = 'PD';
 
-        result.push(`PU${firstPoint.X},${firstPoint.Y};`)
-        result.push('PD;')
+        result.push(`PU${firstPoint.X},${firstPoint.Y};`);
+        result.push('PD;');
 
         scaledPoints.forEach((point, idx) => {
             if (idx === 0) { return; }
@@ -50,23 +50,23 @@ export module HPGLUtils {
             if (idx % 20 === 0) {
                 pathString += ';';
                 result.push(pathString);
-                pathString = 'PD'
+                pathString = 'PD';
                 return;
             }
 
             if (idx === scaledPoints.length - 1) {
-                pathString += ';'
+                pathString += ';';
             } else {
-                pathString += ','
+                pathString += ',';
             }
         });
 
         if (modelElement.closed) {
-            pathString += `PD${scaledPoints[0].X},${scaledPoints[0].Y};`
+            pathString += `PD${scaledPoints[0].X},${scaledPoints[0].Y};`;
         }
 
         result.push(pathString);
-        result.push('PU;')
+        result.push('PU;');
 
         return result;
     }
@@ -83,6 +83,6 @@ export module HPGLUtils {
         return {
             X: Math.round(xOut),
             Y: Math.round(yOut)
-        }
+        };
     }
 }

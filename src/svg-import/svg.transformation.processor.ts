@@ -1,5 +1,5 @@
-import {XY} from '../data-model/svg.model'
-import {ChildResult, extractValues} from './svg.input.processor';
+import { XY } from '../data-model/svg.model';
+import { ChildResult, extractValues } from './svg.input.processor';
 import { race } from 'q';
 
 interface Transformation {
@@ -10,7 +10,7 @@ interface Transformation {
 export function transform(points: XY[], svgChild: HTMLElement): XY[] {
     let newPoints: XY[] = points;
     const tString = svgChild.getAttribute('transform').trim();
-    const tRegex = /(matrix|translate|scale|rotate|skewX|skewY)\((.+?)\)/g
+    const tRegex = /(matrix|translate|scale|rotate|skewX|skewY)\((.+?)\)/g;
     const transformations: Transformation[] = [];
 
     let currentMatch;
@@ -40,7 +40,7 @@ function applyTransformation(points: XY[], transformation: Transformation): XY[]
                 values[0], values[2], values[4],
                 values[1], values[3], values[5],
                        0 ,        0 ,        1
-            ]
+            ];
 
             newPoints = points.map(point => applyMatrix(point, matrix));
             break;
@@ -60,7 +60,7 @@ function applyTransformation(points: XY[], transformation: Transformation): XY[]
                 sx,  0,  0,
                  0, sy,  0,
                  0,  0,  1
-            ]
+            ];
 
             newPoints = points.map(point => applyMatrix(point, matrix));
             break;
@@ -75,70 +75,68 @@ function applyTransformation(points: XY[], transformation: Transformation): XY[]
                 cos, -sin,    0,
                 sin,  cos,    0,
                   0,    0,    1
-            ]
+            ];
 
             if (doTranslation) {
                 const cx = values[1];
                 const cy = values[2];
-                newPoints = points.map(point => translate(point, -cx, -cy))
-                newPoints = newPoints.map(point => applyMatrix(point, matrix))
-                newPoints = newPoints.map(point => translate(point, cx, cy))
+                newPoints = points.map(point => translate(point, -cx, -cy));
+                newPoints = newPoints.map(point => applyMatrix(point, matrix));
+                newPoints = newPoints.map(point => translate(point, cx, cy));
             } else {
-                newPoints = points.map(point => applyMatrix(point, matrix))
+                newPoints = points.map(point => applyMatrix(point, matrix));
             }
 
             break;
 
         case 'skewX':
             radians = (Math.PI / 180) * values[0];
-            const tanX = Math.tan(radians)
+            const tanX = Math.tan(radians);
 
             matrix = [
                 1, tanX,   0,
                 0,    1,   0,
                 0,    0,   1
-            ]
+            ];
 
-            newPoints = points.map(point => applyMatrix(point, matrix))
+            newPoints = points.map(point => applyMatrix(point, matrix));
             break;
 
         case 'skewY':
             radians = (Math.PI / 180) * values[0];
-            const tanY = Math.tan(radians)
+            const tanY = Math.tan(radians);
 
             matrix = [
                    1,   0,   0,
                 tanY,   1,   0,
                    0,   0,   1
-            ]
+            ];
 
-            newPoints = points.map(point => applyMatrix(point, matrix))
+            newPoints = points.map(point => applyMatrix(point, matrix));
             break;
 
         default:
-            console.error(`Tansformation: ${transformation.command} not supported!`)
+            console.error(`Tansformation: ${transformation.command} not supported!`);
 
             matrix = [
                 1,   0,   0,
                 0,   1,   0,
                 0,   0,   1
-            ]
+            ];
 
-            newPoints = points.map(point => applyMatrix(point, matrix))
+            newPoints = points.map(point => applyMatrix(point, matrix));
             break;
     }
 
     return newPoints;
 }
 
-
-
-function translate(point: XY, tx, ty): XY {
+function translate(point: XY, tx: number, ty: number): XY {
     const matrix = [
         1 ,        0 ,       tx,
         0 ,        1 ,       ty,
         0 ,        0 ,        1
-    ]
+    ];
     return applyMatrix(point, matrix);
 }
 
