@@ -1,6 +1,6 @@
 // NOT NEEDED?
 
-const STROKE = 'stroke';
+// const STROKE = 'stroke';
 const FILL = 'fill';
 const NONE = 'none';
 

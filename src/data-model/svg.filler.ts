@@ -1,4 +1,4 @@
-import { XY, ModelElement, MODEL } from './svg.model';
+import { XY, ModelElement } from './svg.model';
 import { ClipUtils, ClipType } from './svg.clipping';
 
 export interface Progression {
@@ -51,28 +51,28 @@ export function createFillingElements(
     return result;
 }
 
-function checkBounding(point: XY, bounding: Bounding): boolean {
-    const fitsMaxX = bounding.maxX ? (point.X <= bounding.maxX) : true;
-    const fitsMaxY = bounding.maxY ? (point.Y <= bounding.maxY) : true;
-    const fitsMinX = bounding.minX ? (point.X >= bounding.minX) : true;
-    const fitsMinY = bounding.minY ? (point.Y >= bounding.minY) : true;
+// function checkBounding(point: XY, bounding: Bounding): boolean {
+//     const fitsMaxX = bounding.maxX ? (point.X <= bounding.maxX) : true;
+//     const fitsMaxY = bounding.maxY ? (point.Y <= bounding.maxY) : true;
+//     const fitsMinX = bounding.minX ? (point.X >= bounding.minX) : true;
+//     const fitsMinY = bounding.minY ? (point.Y >= bounding.minY) : true;
 
-    return fitsMaxX && fitsMaxY && fitsMinX && fitsMinY;
-}
+//     return fitsMaxX && fitsMaxY && fitsMinX && fitsMinY;
+// }
 
-function checkBoundingOverlap(boundingA: Bounding, boundingB: Bounding) {
-    const pointA = {X: boundingA.minX, Y: boundingA.minY};
-    const pointB = {X: boundingA.maxX, Y: boundingA.minY};
-    const pointC = {X: boundingA.maxX, Y: boundingA.maxY};
-    const pointD = {X: boundingA.minX, Y: boundingA.maxY};
+// function checkBoundingOverlap(boundingA: Bounding, boundingB: Bounding) {
+//     const pointA = {X: boundingA.minX, Y: boundingA.minY};
+//     const pointB = {X: boundingA.maxX, Y: boundingA.minY};
+//     const pointC = {X: boundingA.maxX, Y: boundingA.maxY};
+//     const pointD = {X: boundingA.minX, Y: boundingA.maxY};
 
-    const pointAInBoundingB = checkBounding(pointA, boundingB);
-    const pointBInBoundingB = checkBounding(pointB, boundingB);
-    const pointCInBoundingB = checkBounding(pointC, boundingB);
-    const pointDInBoundingB = checkBounding(pointD, boundingB);
+//     const pointAInBoundingB = checkBounding(pointA, boundingB);
+//     const pointBInBoundingB = checkBounding(pointB, boundingB);
+//     const pointCInBoundingB = checkBounding(pointC, boundingB);
+//     const pointDInBoundingB = checkBounding(pointD, boundingB);
 
-    return pointAInBoundingB || pointBInBoundingB || pointCInBoundingB || pointDInBoundingB;
-}
+//     return pointAInBoundingB || pointBInBoundingB || pointCInBoundingB || pointDInBoundingB;
+// }
 
 export function getBoundingBox(...modelElements: ModelElement[]): Bounding {
     const initialBounding = {
@@ -97,11 +97,6 @@ export function getBoundingBox(...modelElements: ModelElement[]): Bounding {
     );
 
     return bounding;
-}
-
-function test() {
-    const a = [{X: 0, Y: 0}, {X: 0, Y: 0}];
-    const b = [{X: Number.MIN_VALUE, Y: Number.MIN_VALUE}, {X: Number.MAX_VALUE, Y: Number.MAX_VALUE}];
 }
 
 export function add(...vectors: XY[]): XY {

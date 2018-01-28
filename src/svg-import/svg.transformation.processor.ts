@@ -1,6 +1,5 @@
 import { XY } from '../data-model/svg.model';
-import { ChildResult, extractValues } from './svg.input.processor';
-import { race } from 'q';
+import { extractValues } from './svg.input.processor';
 
 interface Transformation {
     command: string;
@@ -143,7 +142,7 @@ function translate(point: XY, tx: number, ty: number): XY {
 function applyMatrix(point: XY, matrix: number[]): XY {
     const c0r0 = matrix[0], c1r0 = matrix[1], c2r0 = matrix[2];
     const c0r1 = matrix[3], c1r1 = matrix[4], c2r1 = matrix[5];
-    const c0r2 = matrix[6], c1r2 = matrix[7], c2r2 = matrix[8];
+    // const c0r2 = matrix[6], c1r2 = matrix[7], c2r2 = matrix[8];
 
     const x = point.X;
     const y = point.Y;

@@ -4,7 +4,7 @@ import { processLineElement } from './svg.line.processor';
 import { processPolylineElement } from './svg.polyline.processor';
 import { processEllipseElement } from './svg.ellipse.processor';
 import { processRectangleElement } from './svg.rectangle.processor';
-import { ModelElement, GraphicValues, XY } from '../data-model/svg.model';
+import { ModelElement, XY } from '../data-model/svg.model';
 import { transform } from './svg.transformation.processor';
 
 export interface ChildResult {
