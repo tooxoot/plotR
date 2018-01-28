@@ -1,4 +1,4 @@
-import { ModelElement, XY } from './svg.model';
+import { ModelElement } from './svg.model';
 import ClipperLib = require('clipper-lib');
 
 export enum ClipType {

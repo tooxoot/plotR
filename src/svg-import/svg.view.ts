@@ -1,4 +1,3 @@
-import { XY } from '../data-model/svg.model';
 import { ModelElement } from '../data-model/svg.model';
 
 export function calculateSVGString(modelElement: ModelElement): string {

@@ -7,9 +7,8 @@ import {
     createFillingElements,
     add,
     rotate,
-    subtract,
-    getBoundingBox } from './svg.filler';
-import { ClipUtils } from './svg.clipping';
+    getBoundingBox
+} from './svg.filler';
 
 export function createSimpleLineFilling(
     filledElement: ModelElement,
@@ -89,34 +88,34 @@ function countedVectorProgression (args: {
     };
 }
 
-function getLinearProgression(
-    start: DrawInitials,
-    delta: XY,
-    bounding: [XY, XY],
-    bidirectional: boolean = false
-): Progression {
-    let stepCount = 0;
+// function getLinearProgression(
+//     start: DrawInitials,
+//     delta: XY,
+//     bounding: [XY, XY],
+//     bidirectional: boolean = false
+// ): Progression {
+//     let stepCount = 0;
 
-    const next = (currentInitials: DrawInitials) => {
-        stepCount++;
+//     const next = (currentInitials: DrawInitials) => {
+//         stepCount++;
 
-        return { position: add(currentInitials.position, delta)};
-    };
+//         return { position: add(currentInitials.position, delta)};
+//     };
 
-    return {
-        start: start,
-        bounding: bounding,
-        next: next
-    };
-}
+//     return {
+//         start: start,
+//         bounding: bounding,
+//         next: next
+//     };
+// }
 
-function getLines(progression: Progression, angle: number): ModelElement[] {
-    const result: ModelElement[] = [];
+// function getLines(progression: Progression, angle: number): ModelElement[] {
+//     const result: ModelElement[] = [];
 
-    const drawLine = getDrawLineCallBack(angle);
+//     const drawLine = getDrawLineCallBack(angle);
 
-    return createFillingElements(progression, drawLine);
-}
+//     return createFillingElements(progression, drawLine);
+// }
 
 function getDrawLineCallBack(angle?: number): (initials: DrawInitials) => ModelElement[] {
     return function(currentInitials: DrawInitials): ModelElement[] {
