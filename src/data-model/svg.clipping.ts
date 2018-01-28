@@ -1,5 +1,5 @@
-import { ModelElement } from './svg.model';
-import ClipperLib = require('clipper-lib');
+import { ModelElement, XY } from './svg.model';
+const ClipperLib = require('clipper-lib');
 
 export enum ClipType {
     Intersect = 0,
@@ -89,7 +89,7 @@ export module ClipUtils {
                 ClipperLib.Clipper.ClosedPathsFromPolyTree(solutionTree) :
                 ClipperLib.Clipper.OpenPathsFromPolyTree(solutionTree);
 
-        return result.map(element => {
+        return result.map((element: Array<XY>) => {
             return {
                 points: element,
                 closed: regardClosing && subject.closed,

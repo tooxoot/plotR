@@ -1,5 +1,5 @@
 import { extractValues, ChildResult } from './svg.input.processor';
-import Bezier = require( 'bezier-js' );
+const Bezier = require('bezier-js') as typeof BezierJs.Bezier;
 
 class Command {
     constructor(
