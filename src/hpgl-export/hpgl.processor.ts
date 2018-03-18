@@ -1,5 +1,5 @@
-import { ModelElement, XY } from '../data-model/svg.model';
-
+import { XY } from '../data-model/svg.model';
+import { GraphTypes as GT } from '../data-model/model.graph.types';
 export module HPGLUtils {
 
     /**
@@ -15,14 +15,14 @@ export module HPGLUtils {
      * This function converts all provided ModelElements to HPGL output,
      * applies the provided scaling and creates initial overhead.
      */
-    export function convertToHPGL(modelElements: ModelElement[], scaling: Scaling): string[] {
+    export function convertToHPGL(drawable: GT.DrawableElement[], scaling: Scaling): string[] {
         const result: string[] = [];
 
         result.push('IN;');
         result.push('VS1;');
         result.push('SP1;');
 
-        modelElements.forEach(modelElement => {
+        drawable.forEach(modelElement => {
             result.push(...convertElement(modelElement, scaling));
         });
 
@@ -33,9 +33,9 @@ export module HPGLUtils {
      * This function converts the provided ModelElements to HPGL output,
      *  and applies the provided scaling.
      */
-    function convertElement(modelElement: ModelElement, scaling: Scaling): string[] {
+    function convertElement(drawable: GT.DrawableElement, scaling: Scaling): string[] {
         const result: string[] = [];
-        const scaledPoints = modelElement.points.map(point => scale(point, scaling));
+        const scaledPoints = drawable.points.map(point => scale(point, scaling));
         const firstPoint = scaledPoints[0];
         let pathString = 'PD';
 
@@ -61,7 +61,7 @@ export module HPGLUtils {
             }
         });
 
-        if (modelElement.closed) {
+        if (drawable.closed) {
             pathString += `PD${scaledPoints[0].X},${scaledPoints[0].Y};`;
         }
 

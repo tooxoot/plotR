@@ -1,9 +1,9 @@
-import { XY, ModelElement } from './svg.model';
+import { XY } from './svg.model';
+import { GraphTypes as GT } from '../data-model/model.graph.types';
 import { ClipUtils, ClipType } from './svg.clipping';
 
 export interface Progression {
     start: DrawInitials;
-    // delta: XY;
     bounding: [XY, XY];
     previousResultsBounding?: Bounding;
     next(currentInitials: DrawInitials): DrawInitials;
@@ -22,11 +22,11 @@ export interface Bounding {
 }
 
 export function clipFilling(
-    fillingElements: ModelElement[],
-    boundingElement: ModelElement,
+    fillingElements: GT.DrawableElement[],
+    boundingElement: GT.DrawableElement,
     regardClosing: boolean = true
-): ModelElement[] {
-    const clippedFillings: ModelElement[] = [];
+): GT.DrawableElement[] {
+    const clippedFillings: GT.DrawableElement[] = [];
 
     fillingElements.forEach( fillingElement => {
         const results = ClipUtils.clipTwo(fillingElement, boundingElement, regardClosing, ClipType.Intersect);
@@ -38,8 +38,8 @@ export function clipFilling(
 
 export function createFillingElements(
     progression: Progression,
-    drawingCallback: (dI: DrawInitials) => ModelElement[] ): ModelElement[] {
-    const result: ModelElement[] = [];
+    drawingCallback: (dI: DrawInitials) => GT.DrawableElement[] ): GT.DrawableElement[] {
+    const result: GT.DrawableElement[] = [];
     // let delta = progression.delta;
     let currentInitials: DrawInitials = progression.start;
 
@@ -51,30 +51,7 @@ export function createFillingElements(
     return result;
 }
 
-// function checkBounding(point: XY, bounding: Bounding): boolean {
-//     const fitsMaxX = bounding.maxX ? (point.X <= bounding.maxX) : true;
-//     const fitsMaxY = bounding.maxY ? (point.Y <= bounding.maxY) : true;
-//     const fitsMinX = bounding.minX ? (point.X >= bounding.minX) : true;
-//     const fitsMinY = bounding.minY ? (point.Y >= bounding.minY) : true;
-
-//     return fitsMaxX && fitsMaxY && fitsMinX && fitsMinY;
-// }
-
-// function checkBoundingOverlap(boundingA: Bounding, boundingB: Bounding) {
-//     const pointA = {X: boundingA.minX, Y: boundingA.minY};
-//     const pointB = {X: boundingA.maxX, Y: boundingA.minY};
-//     const pointC = {X: boundingA.maxX, Y: boundingA.maxY};
-//     const pointD = {X: boundingA.minX, Y: boundingA.maxY};
-
-//     const pointAInBoundingB = checkBounding(pointA, boundingB);
-//     const pointBInBoundingB = checkBounding(pointB, boundingB);
-//     const pointCInBoundingB = checkBounding(pointC, boundingB);
-//     const pointDInBoundingB = checkBounding(pointD, boundingB);
-
-//     return pointAInBoundingB || pointBInBoundingB || pointCInBoundingB || pointDInBoundingB;
-// }
-
-export function getBoundingBox(...modelElements: ModelElement[]): Bounding {
+export function getBoundingBox(...modelElements: GT.DrawableElement[]): Bounding {
     const initialBounding = {
         minX: Number.MAX_VALUE,
         maxX: Number.MIN_VALUE,
