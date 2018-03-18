@@ -2,8 +2,8 @@
   text-align: center;
 
   display: grid;
-  /* width: 100vw; */
-  /* height: 100vh; */
+  width: 100vw;
+  height: 100vh;
   grid-template-areas:  "topbar topbar"
                         "view   treeview"
                         "view   toolbox";
@@ -33,8 +33,9 @@
 #toolbox {
   grid-area: toolbox;
   background-color: #906060;
-  display: grid;
-  grid-template-rows: repeat(10, 10%);
-  grid-template-columns: repeat(4, 25%);
-  overflow: auto;
+}
+
+#svg-view {
+  width: 100%;
+  height: 100%;
 }
