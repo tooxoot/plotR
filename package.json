@@ -5,11 +5,14 @@
   "dependencies": {
     "@types/bezier-js": "0.0.7",
     "@types/js-clipper": "0.0.28",
+    "@types/react-redux": "^5.0.14",
     "bezier-js": "^2.2.5",
     "clipper-lib": "^6.2.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-scripts-ts": "2.13.0"
+    "react-redux": "^5.0.6",
+    "react-scripts-ts": "2.13.0",
+    "redux": "^3.7.2"
   },
   "scripts": {
     "start": "react-scripts-ts start",
