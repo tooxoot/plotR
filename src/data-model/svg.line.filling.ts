@@ -1,4 +1,5 @@
-import { XY, ModelElement, MODEL } from './svg.model';
+import { XY, Dimensions } from './svg.model';
+import { GraphTypes as GT } from '../data-model/model.graph.types';
 import {
     scale,
     clipFilling,
@@ -11,11 +12,11 @@ import {
 } from './svg.filler';
 
 export function createSimpleLineFilling(
-    filledElement: ModelElement,
+    filledElement: GT.DrawableElement,
     angle: number,
     spacing: number,
     offset: number
-): ModelElement[] {
+): GT.DrawableElement[] {
     /*
     Note Lines should be orthogonal to progression
     For lines:          angle = 0 => vl = [0,1]
@@ -88,44 +89,15 @@ function countedVectorProgression (args: {
     };
 }
 
-// function getLinearProgression(
-//     start: DrawInitials,
-//     delta: XY,
-//     bounding: [XY, XY],
-//     bidirectional: boolean = false
-// ): Progression {
-//     let stepCount = 0;
-
-//     const next = (currentInitials: DrawInitials) => {
-//         stepCount++;
-
-//         return { position: add(currentInitials.position, delta)};
-//     };
-
-//     return {
-//         start: start,
-//         bounding: bounding,
-//         next: next
-//     };
-// }
-
-// function getLines(progression: Progression, angle: number): ModelElement[] {
-//     const result: ModelElement[] = [];
-
-//     const drawLine = getDrawLineCallBack(angle);
-
-//     return createFillingElements(progression, drawLine);
-// }
-
-function getDrawLineCallBack(angle?: number): (initials: DrawInitials) => ModelElement[] {
-    return function(currentInitials: DrawInitials): ModelElement[] {
+function getDrawLineCallBack(angle?: number): (initials: DrawInitials) => GT.DrawableElement[] {
+    return function(currentInitials: DrawInitials): GT.DrawableElement[] {
         const usedAngle = angle != null ? angle : currentInitials.angle;
         const pV = rotate({X: 0, Y: 0}, {X: 0, Y: 1}, usedAngle);
 
         const tMinX = (0 - currentInitials.position.X) / pV.X;
         const tMinY = (0 - currentInitials.position.Y) / pV.Y;
-        const tMaxX = (MODEL.dimensions.X - currentInitials.position.X) / pV.X;
-        const tMaxY = (MODEL.dimensions.Y - currentInitials.position.Y) / pV.Y;
+        const tMaxX = (Dimensions.X - currentInitials.position.X) / pV.X;
+        const tMaxY = (Dimensions.Y - currentInitials.position.Y) / pV.Y;
 
         const tMin = isFinite(tMinX) ? tMinX : tMinY;
         const tMax = isFinite(tMaxX) ? tMaxX : tMaxY;
@@ -133,11 +105,11 @@ function getDrawLineCallBack(angle?: number): (initials: DrawInitials) => ModelE
         const pR = add(currentInitials.position , {X: tMax * pV.X, Y: tMax * pV.Y});
         const pL = add(currentInitials.position , {X: tMin * pV.X, Y: tMin * pV.Y});
 
-        return [{
+        return [GT.newDrawableElement({
             points: [pR, pL],
             filled: false,
             outlined: true,
             closed: false,
-        }];
+        })];
     };
 }

@@ -1,10 +1,11 @@
-// import {splitElement, SplitResult} from './svg.element.splitter'
 import { processPathElement } from './svg.path.processor';
 import { processLineElement } from './svg.line.processor';
 import { processPolylineElement } from './svg.polyline.processor';
 import { processEllipseElement } from './svg.ellipse.processor';
 import { processRectangleElement } from './svg.rectangle.processor';
-import { ModelElement, XY } from '../data-model/svg.model';
+import { XY } from '../data-model/svg.model';
+import { Context } from '../data-model/model.context';
+import { GraphTypes as GT } from '../data-model/model.graph.types';
 import { transform } from './svg.transformation.processor';
 
 export interface ChildResult {
@@ -12,18 +13,30 @@ export interface ChildResult {
     closed: boolean;
 }
 
-export function processSVG(svgRoot: HTMLElement): ModelElement[] {
-    const inputResult: ModelElement[] = [];
+export function processSVG(svgRoot: HTMLElement): GT.Graph {
+    const context = Context.createNewRoot();
+    console.log(context);
+    processGroup(context, 0, svgRoot);
 
-    for (let i = 0; i < svgRoot.children.length; i++) {
-        const childResult = processChild(<HTMLElement> svgRoot.children.item(i));
-        inputResult.push(childResult);
-    }
-
-    return inputResult;
+    return context.pull();
 }
 
-function processChild(svgChild: HTMLElement): ModelElement {
+function processGroup(context: Context, currentGroupId: number, svgGroup: HTMLElement) {
+    for (let i = 0; i < svgGroup.children.length; i++) {
+        const currentChild = <HTMLElement> svgGroup.children.item(i);
+
+        if (currentChild.tagName === 'g') {
+            const groupElement = GT.newGroupElement();
+            context.add(currentGroupId, groupElement);
+            processGroup(context, groupElement.id, currentChild);
+        } else {
+            const drawableElement = processChild(currentChild);
+            context.add(currentGroupId, drawableElement);
+        }
+    }
+}
+
+function processChild(svgChild: HTMLElement): GT.DrawableElement {
     let tempResult: ChildResult;
 
     switch (svgChild.tagName) {
@@ -74,11 +87,12 @@ function processChild(svgChild: HTMLElement): ModelElement {
         tempResult.points = transform(tempResult.points, svgChild);
     }
 
-    return {    points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
-                filled: isFilled(svgChild),
-                outlined: hasOutline(svgChild),
-                closed: tempResult.closed
-           };
+    return GT.newDrawableElement({
+        points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
+        filled: isFilled(svgChild),
+        outlined: hasOutline(svgChild),
+        closed: tempResult.closed
+    });
 
 }
 
