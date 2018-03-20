@@ -3,9 +3,9 @@ import * as React from 'react';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 import { GraphUtils as GU } from '../data-model/model.graph.utils';
 import { ReduxState } from '../redux-model/redux.state';
-import * as ToggleActions from '../redux-model/redux.toggle.actions';
+import { ElementToggles } from '../redux-model/redux.toggle.actions';
 
-interface ThisProps {
+interface Props {
     selectedIds: number[];
     elementIndex: GT.ElementIndex;
     childRelations: GT.ChildRelations;
@@ -16,7 +16,7 @@ interface ThisProps {
     // tslint:enable: no-any
 }
 
-const definition: React.SFC<ThisProps> = (props) => {
+const SELECT_LIST_COMPONENT: React.SFC<Props> = (props) => {
     const {
         selectedIds,
         elementIndex,
@@ -82,13 +82,13 @@ const stateToProps = (state: ReduxState) => {
 
 const  dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
     {
-        toggleSelect: (id: number) => dispatch<ToggleActions.ToggleSelect>(ToggleActions.toggleSelect(id)),
-        toggleFilled: (id: number) => dispatch<ToggleActions.ToggleFilling>(ToggleActions.toggleFilling(id)),
-        toggleClosed: (id: number) => dispatch<ToggleActions.ToggleClose>(ToggleActions.toggleClose(id))
+        toggleSelect: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionSelect(id)),
+        toggleFilled: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionFilling(id)),
+        toggleClosed: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionClose(id))
     }
 );
 
-export const Selectlist = ReactRedux.connect(
+export const SELECT_LIST = ReactRedux.connect(
     stateToProps,
     dispatchToProps
-)(definition);
+)(SELECT_LIST_COMPONENT);
