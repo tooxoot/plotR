@@ -2,13 +2,15 @@ import { GraphTypes as GT } from './model.graph.types';
 import { GraphUtils as GU } from './model.graph.utils';
 
 export class Context {
+    private dimensions: GT.Dimensions;
     private parentRelations: GT.ParentRelations;
     private childRelations: GT.ChildRelations;
     private elementIndex: GT.ElementIndex;
     private graph: GT.Graph;
 
-    public static createNewRoot(): Context {
+    public static createNewRoot({X, Y}: {X: number, Y: number}): Context {
         return new Context(
+            { X: X, Y: Y, center: {X: X / 2, Y: Y / 2}},
             { 0: -1 },
             { 0: [] },
             { 0: { id: 0, type: GT.Types.ROOT } },
@@ -16,14 +18,17 @@ export class Context {
     }
 
     constructor (
+        dimensions: GT.Dimensions,
         parentRelations: GT.ParentRelations,
         childRelations: GT.ChildRelations,
         elementIndex: GT.ElementIndex,
     ) {
+        this.dimensions = {...dimensions};
         this.parentRelations = {...parentRelations};
         this.childRelations = {...childRelations};
         this.elementIndex = {...elementIndex};
         this.graph = {
+            dimensions: this.dimensions,
             elementIndex: this.elementIndex,
             relations: {
                 parentRelations: this.parentRelations,

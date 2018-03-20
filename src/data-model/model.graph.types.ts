@@ -10,7 +10,14 @@ export module GraphTypes {
         export const DRAWABLE = 'DRAWABLE';
     }
 
+    export type Dimensions = {
+         X: number;
+         Y: number;
+         center: XY;
+    };
+
     export type Graph = {
+        dimensions: Dimensions;
         elementIndex: ElementIndex;
         relations: Relations;
     };
