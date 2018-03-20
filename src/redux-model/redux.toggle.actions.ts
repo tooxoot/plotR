@@ -2,81 +2,84 @@ import * as Redux from 'redux';
 import { ReduxState } from './redux.state';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 
-export interface ToggleSelect extends Redux.Action {
-    id: number;
-}
-export const TOGGLE_SELECT_MODEL_ELEMENT = 'TOGGLE_SELECT_MODEL_ELEMENT';
+export module ElementToggles {
 
-export function toggleSelect(modelElementId: number): ToggleSelect {
-    return {
-        type: TOGGLE_SELECT_MODEL_ELEMENT,
-        id: modelElementId
-    };
-}
-
-export function reduceToggleSelect(state: ReduxState, toggle: ToggleSelect): ReduxState {
-    let toggledIds: number[];
-
-    if (state.selectedIds.includes(toggle.id)) {
-        toggledIds = state.selectedIds.filter(id => id !== toggle.id);
-    } else {
-        toggledIds = state.selectedIds.concat(toggle.id);
+    export interface IdAction extends Redux.Action {
+        id: number;
     }
 
-    return {
-        ...state,
-        selectedIds: toggledIds
-    };
-}
+    export const TYPE_SELECT = 'TOGGLE_SELECT';
+    export const TYPE_FILLING = 'TOGGLE_FILLING';
+    export const TYPE_CLOSE = 'TOGGLE_CLOSE';
 
-export interface ToggleFilling extends Redux.Action {
-    id: number;
-}
-export const TOGGLE_FILLING_MODEL_ELEMENT = 'TOGGLE_FILLING_MODEL_ELEMENT';
+    export function actionSelect(toggledId: number): IdAction {
+        return {
+            type: TYPE_SELECT,
+            id: toggledId,
+        };
+    }
 
-export function toggleFilling(modelElementId: number): ToggleFilling {
-    return {
-        type: TOGGLE_FILLING_MODEL_ELEMENT,
-        id: modelElementId
-    };
-}
+    export function actionFilling(toggledId: number): IdAction {
+        return {
+            type: TYPE_FILLING,
+            id: toggledId,
+        };
+    }
 
-export function reduceToggleFilling(state: ReduxState, toggle: ToggleFilling): ReduxState {
-    return reduceToggleDrawableFlag(state, toggle.id, 'filled');
-}
+    export function actionClose(toggledId: number): IdAction {
+        return {
+            type: TYPE_CLOSE,
+            id: toggledId,
+        };
+    }
 
-export interface ToggleClose extends Redux.Action {
-    id: number;
-}
-export const TOGGLE_CLOSE_MODEL_ELEMENT = 'TOGGLE_CLOSE_MODEL_ELEMENT';
+    export function reduceSelect(state: ReduxState, action: Redux.Action): ReduxState {
+        const toggledId = (action as IdAction).id;
+        let newSelectedIds: number[];
 
-export function toggleClose(modelElementId: number): ToggleClose {
-    return {
-        type: TOGGLE_CLOSE_MODEL_ELEMENT,
-        id: modelElementId
-    };
-}
-
-export function reduceToggleClose(state: ReduxState, toggle: ToggleClose): ReduxState {
-    return reduceToggleDrawableFlag(state, toggle.id, 'closed');
-}
-
-function reduceToggleDrawableFlag(state: ReduxState, id: number, key: string): ReduxState {
-    const element = state.elementIndex[id];
-
-    if ( element.type !== GT.Types.DRAWABLE) { return state; }
-
-    let drawable = element as GT.DrawableElement;
-    drawable = {
-        ...drawable,
-        [key]: !drawable[key]
-    };
-
-    return {
-        ...state,
-        elementIndex: {
-            ...state.elementIndex,
-            [id]: drawable,
+        if (state.selectedIds.includes(toggledId)) {
+            newSelectedIds = state.selectedIds.filter(id => id !== toggledId);
+        } else {
+            newSelectedIds = state.selectedIds.concat(toggledId);
         }
+
+        return {
+            ...state,
+            selectedIds: newSelectedIds
+        };
+    }
+
+    export function reduceFilling(state: ReduxState, action: Redux.Action): ReduxState {
+        return reduceToggleDrawableFlag(state, (action as IdAction).id, 'filled');
+    }
+
+    export function reduceClose(state: ReduxState, action: Redux.Action): ReduxState {
+        return reduceToggleDrawableFlag(state, (action as IdAction).id, 'closed');
+    }
+
+    export const reducerMap = {
+        [TYPE_SELECT]: reduceSelect,
+        [TYPE_FILLING]: reduceFilling,
+        [TYPE_CLOSE]: reduceClose,
     };
+
+    function reduceToggleDrawableFlag(state: ReduxState, id: number, key: string): ReduxState {
+        const element = state.elementIndex[id];
+
+        if ( element.type !== GT.Types.DRAWABLE) { return state; }
+
+        let drawable = element as GT.DrawableElement;
+        drawable = {
+            ...drawable,
+            [key]: !drawable[key]
+        };
+
+        return {
+            ...state,
+            elementIndex: {
+                ...state.elementIndex,
+                [id]: drawable,
+            }
+        };
+    }
 }
