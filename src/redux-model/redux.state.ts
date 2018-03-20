@@ -1,11 +1,15 @@
 import * as Redux from 'redux';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
-import * as ToggleActions from './redux.toggle.actions';
-import * as ProcessAction from './redux.process.action';
+import { ElementToggles } from './redux.toggle.actions';
+import { ProcessSvgSource } from './redux.process.action';
+import { ToggleDebugView } from './redux.debug.view.actions';
+import { ClipGraph } from './redux.clip.graph.action';
 
-export interface ReduxState {
+export interface ReduxState extends
+    ToggleDebugView.StateExtension,
+    ClipGraph.StateExtension {
     selectedIds: number[];
-    triggerUpdate: boolean;
+    dimensions: GT.Dimensions;
     elementIndex: GT.ElementIndex;
     parentRelations: GT.ParentRelations;
     childRelations: GT.ChildRelations;
@@ -14,69 +18,33 @@ export interface ReduxState {
 
 const initialState: ReduxState = {
     selectedIds: [],
-    triggerUpdate: false,
+    dimensions: null,
     elementIndex: {},
     parentRelations: {},
     childRelations: {},
     svgSource: document.getElementById('SVG'),
+    ...ToggleDebugView.initialStateExtension,
+    ...ClipGraph.initialStateExtension,
+};
+
+const reducerMap: {[type: string]: (state: ReduxState, action: Redux.Action) => ReduxState} = {
+    ...ProcessSvgSource.reducerMap,
+    ...ToggleDebugView.reducerMap,
+    ...ClipGraph.reducerMap,
+    ...ElementToggles.reducerMap,
 };
 
 export interface IdAction extends Redux.Action {
     id: number;
 }
 
-const SELECT_MODEL_ELEMENT = 'SELECT_MODEL_ELEMENT';
-
-const DESELECT_MODEL_ELEMENT = 'DESELECT_MODEL_ELEMENT';
-
-export function selectId(modelElementId: number): IdAction {
-    return {
-        type: SELECT_MODEL_ELEMENT,
-        id: modelElementId
-    };
-}
-
-export function deselectId(modelElementId: number): IdAction {
-    return {
-        type: DESELECT_MODEL_ELEMENT,
-        id: modelElementId
-    };
-}
-
 function mainReducer ( state: ReduxState, action: Redux.Action): ReduxState {
-    switch (action.type) {
-        case SELECT_MODEL_ELEMENT:
-            const select = action as IdAction;
-            return {
-                ...state,
-                selectedIds: state.selectedIds.concat(select.id)
-            };
-
-        case DESELECT_MODEL_ELEMENT:
-            const deselect = action as IdAction;
-            return {
-                ...state,
-                selectedIds: state.selectedIds.filter(id => id !== deselect.id)
-            };
-
-        case ProcessAction.PROCESS_SVG_SOURCE:
-            return ProcessAction.reduceToggleSelect(state);
-
-        case ToggleActions.TOGGLE_CLOSE_MODEL_ELEMENT:
-            return ToggleActions.reduceToggleClose(state, action as ToggleActions.ToggleClose);
-
-        case ToggleActions.TOGGLE_FILLING_MODEL_ELEMENT:
-            return {
-                ...ToggleActions.reduceToggleFilling(state, action as ToggleActions.ToggleFilling),
-                triggerUpdate: !state.triggerUpdate
-            };
-
-        case ToggleActions.TOGGLE_SELECT_MODEL_ELEMENT:
-            return ToggleActions.reduceToggleSelect(state, action as ToggleActions.ToggleSelect);
-
-        default:
-            return state;
+    if (!reducerMap[action.type]) {
+        console.error(`redux.state.ts: Unknown action type ${action.type}!`);
+        return state;
     }
+
+    return reducerMap[action.type](state, action);
 }
 
 export const RSTORE = Redux.createStore<ReduxState>(mainReducer, initialState);
