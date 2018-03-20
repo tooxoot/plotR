@@ -1,4 +1,4 @@
-.App {
+.main-grid {
   text-align: center;
 
   display: grid;
@@ -35,7 +35,7 @@
   background-color: #906060;
 }
 
-#svg-view {
+.svg-view {
   width: 100%;
   height: 100%;
 }

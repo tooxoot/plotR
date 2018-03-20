@@ -5,7 +5,12 @@ import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 import { Provider } from 'react-redux';
 import { RSTORE } from './redux-model/redux.state';
-import { processSVGSource } from './redux-model/redux.process.action';
+import { ProcessSvgSource } from './redux-model/redux.process.action';
+import { ClipGraph } from './redux-model/redux.clip.graph.action';
+
+RSTORE.dispatch<{type: string}>(ProcessSvgSource.action());
+RSTORE.dispatch<{type: string}>(ClipGraph.action());
+console.log(RSTORE.getState());
 
 ReactDOM.render(
   <Provider store={RSTORE}>
@@ -13,5 +18,5 @@ ReactDOM.render(
   </Provider>,
   document.getElementById('root') as HTMLElement
 );
+
 registerServiceWorker();
-RSTORE.dispatch<{type: string}>(processSVGSource());
