@@ -1,12 +1,8 @@
 import * as Redux from 'redux';
-import { ReduxState } from './redux.state';
+import { ReduxState, IdAction } from './redux.state';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 
 export module ElementToggles {
-
-    export interface IdAction extends Redux.Action {
-        id: number;
-    }
 
     export const TYPE_SELECT = 'TOGGLE_SELECT';
     export const TYPE_FILLING = 'TOGGLE_FILLING';

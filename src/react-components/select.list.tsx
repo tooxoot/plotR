@@ -2,7 +2,7 @@ import * as ReactRedux from 'react-redux';
 import * as React from 'react';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 import { GraphUtils as GU } from '../data-model/model.graph.utils';
-import { ReduxState } from '../redux-model/redux.state';
+import { ReduxState, IdAction } from '../redux-model/redux.state';
 import { ElementToggles } from '../redux-model/redux.toggle.actions';
 
 interface Props {
@@ -82,9 +82,9 @@ const stateToProps = (state: ReduxState) => {
 
 const  dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
     {
-        toggleSelect: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionSelect(id)),
-        toggleFilled: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionFilling(id)),
-        toggleClosed: (id: number) => dispatch<ElementToggles.IdAction>(ElementToggles.actionClose(id))
+        toggleSelect: (id: number) => dispatch<IdAction>(ElementToggles.actionSelect(id)),
+        toggleFilled: (id: number) => dispatch<IdAction>(ElementToggles.actionFilling(id)),
+        toggleClosed: (id: number) => dispatch<IdAction>(ElementToggles.actionClose(id))
     }
 );
 
