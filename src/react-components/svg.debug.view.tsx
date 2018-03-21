@@ -5,6 +5,7 @@ import { SVG_VIEW } from './svg.view';
 import { SVG_CLIP_VIEW } from './svg.clip.view';
 import { SVG_SOURCE_VIEW } from './svg.source.view';
 import { ToggleDebugView } from '../redux-model/redux.debug.view.actions';
+import { ClipGraph } from '../redux-model/redux.clip.graph.action';
 
 interface Props {
     hidden: boolean;
@@ -43,7 +44,10 @@ const SVG_DEBUG_BUTTON_COMPONENT: React.SFC<ButtonProps> = ({hidden, toggleHidde
 
 const  dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
     {
-        toggleHidden: (id: number) => dispatch<{type: string}>(ToggleDebugView.action()),
+        toggleHidden: (id: number) => {
+            dispatch<{type: string}>(ClipGraph.action());
+            dispatch<{type: string}>(ToggleDebugView.action());
+        },
     }
 );
 

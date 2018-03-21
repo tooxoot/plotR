@@ -3,6 +3,7 @@ import './App.css';
 import { SVG_VIEW } from './react-components/svg.view';
 import { SELECT_LIST } from './react-components/select.list';
 import { SVG_DEBUG_VIEW, SVG_DEBUG_BUTTON } from './react-components/svg.debug.view';
+import { FILL_INPUT } from './react-components/svg.line.filling.input';
 
 class App extends React.Component {
   public render() {
@@ -16,7 +17,9 @@ class App extends React.Component {
           <div id="view" >
             <SVG_VIEW />
           </div>
-          <div id="treeview"/>
+          <div id="treeview">
+           <FILL_INPUT />
+          </div>
           <div id="toolbox">
             <SELECT_LIST />
           </div>
