@@ -4,6 +4,7 @@ import { ElementToggles } from './redux.toggle.actions';
 import { ProcessSvgSource } from './redux.process.action';
 import { ToggleDebugView } from './redux.debug.view.actions';
 import { ClipGraph } from './redux.clip.graph.action';
+import { LineFilling } from './redux.line.filling';
 
 export interface ReduxState extends
     ToggleDebugView.StateExtension,
@@ -32,6 +33,7 @@ const reducerMap: {[type: string]: (state: ReduxState, action: Redux.Action) => 
     ...ToggleDebugView.reducerMap,
     ...ClipGraph.reducerMap,
     ...ElementToggles.reducerMap,
+    ...LineFilling.reducerMap,
 };
 
 export interface IdAction extends Redux.Action {
