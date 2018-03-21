@@ -1,4 +1,4 @@
-import { XY, Dimensions } from './svg.model';
+import { XY } from './svg.model';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 import {
     scale,
@@ -15,7 +15,8 @@ export function createSimpleLineFilling(
     filledElement: GT.DrawableElement,
     angle: number,
     spacing: number,
-    offset: number
+    offset: number,
+    dimensions: GT.Dimensions,
 ): GT.DrawableElement[] {
     /*
     Note Lines should be orthogonal to progression
@@ -45,12 +46,11 @@ export function createSimpleLineFilling(
         startingInitials: progressionStart,
         vector: vp,
         maxCount: progressionCount,
-        bidirectional: true
+        bidirectional: true,
     });
 
-    const drawingCallback = getDrawLineCallBack(angle);
+    const drawingCallback = getDrawLineCallBack(dimensions, angle);
     const lines = createFillingElements(progression, drawingCallback);
-
     const clippedLines = clipFilling(lines, filledElement);
 
     return clippedLines;
@@ -60,7 +60,7 @@ function countedVectorProgression (args: {
         startingInitials: DrawInitials;
         vector: XY;
         maxCount: number;
-        bidirectional: true
+        bidirectional: true;
     }): Progression {
     let stepR = 0;
     let stepL = 0;
@@ -89,15 +89,18 @@ function countedVectorProgression (args: {
     };
 }
 
-function getDrawLineCallBack(angle?: number): (initials: DrawInitials) => GT.DrawableElement[] {
+function getDrawLineCallBack(
+    dimensions: GT.Dimensions,
+    angle?: number,
+): (initials: DrawInitials) => GT.DrawableElement[] {
     return function(currentInitials: DrawInitials): GT.DrawableElement[] {
         const usedAngle = angle != null ? angle : currentInitials.angle;
         const pV = rotate({X: 0, Y: 0}, {X: 0, Y: 1}, usedAngle);
 
         const tMinX = (0 - currentInitials.position.X) / pV.X;
         const tMinY = (0 - currentInitials.position.Y) / pV.Y;
-        const tMaxX = (Dimensions.X - currentInitials.position.X) / pV.X;
-        const tMaxY = (Dimensions.Y - currentInitials.position.Y) / pV.Y;
+        const tMaxX = (dimensions.X - currentInitials.position.X) / pV.X;
+        const tMaxY = (dimensions.Y - currentInitials.position.Y) / pV.Y;
 
         const tMin = isFinite(tMinX) ? tMinX : tMinY;
         const tMax = isFinite(tMaxX) ? tMaxX : tMaxY;

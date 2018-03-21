@@ -9,19 +9,20 @@ export class Context {
     private graph: GT.Graph;
 
     public static createNewRoot({X, Y}: {X: number, Y: number}): Context {
-        return new Context(
-            { X: X, Y: Y, center: {X: X / 2, Y: Y / 2}},
-            { 0: -1 },
-            { 0: [] },
-            { 0: { id: 0, type: GT.Types.ROOT } },
-        );
+        return new Context({
+            dimensions: { X: X, Y: Y, center: {X: X / 2, Y: Y / 2}},
+            parentRelations: { 0: -1 },
+            childRelations: { 0: [] },
+            elementIndex: { 0: { id: 0, type: GT.Types.ROOT } },
+        });
     }
 
-    constructor (
+    constructor ({dimensions, parentRelations, childRelations, elementIndex}: {
         dimensions: GT.Dimensions,
         parentRelations: GT.ParentRelations,
         childRelations: GT.ChildRelations,
         elementIndex: GT.ElementIndex,
+    }
     ) {
         this.dimensions = {...dimensions};
         this.parentRelations = {...parentRelations};
@@ -39,6 +40,7 @@ export class Context {
 
     public add(parentId: number, ...genericElements: GT.GenericElement[]) {
         genericElements.forEach(gE => this.elementIndex[gE.id] = gE);
+        genericElements.forEach(gE => this.childRelations[gE.id] = []);
         genericElements.forEach(gE => this.relate(parentId, gE.id));
     }
 
