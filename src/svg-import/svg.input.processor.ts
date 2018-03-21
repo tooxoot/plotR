@@ -16,7 +16,7 @@ export interface ChildResult {
 export function processSVG(svgRoot: HTMLElement): GT.Graph {
     const svgWidth = svgRoot.getAttribute('width');
     const svgHeight = svgRoot.getAttribute('height');
-    const context = Context.createNewRoot({X: +(svgWidth), Y: +(svgHeight)});
+    const context = Context.createNewRoot({X: +(svgWidth) * 100, Y: +(svgHeight) * 100});
 
     console.log(context);
     processGroup(context, 0, svgRoot);
