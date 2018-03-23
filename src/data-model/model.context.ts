@@ -70,10 +70,11 @@ export class Context {
 
     public reduceTree<T>(
         subRootId: number,
-        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
         priority: GU.Priority = GU.DEPTH,
-    ): T[] {
-        return GU.reduceTree<T>(subRootId, toDo, this.childRelations);
+        initialValue: T
+    ): T {
+        return GU.reduceTree<T>(subRootId, toDo, this.childRelations, priority, initialValue);
     }
 
     public pull(): GT.Graph {

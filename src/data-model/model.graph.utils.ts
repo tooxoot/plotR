@@ -48,7 +48,7 @@ export module GraphUtils {
             }
             return reducedResults;
         };
-        return reduceTree<number>(subRootId, toDo, childRelations, priority);
+        return reduceTree(subRootId, toDo, childRelations, priority, [] as number[]);
     }
 
     export function getDrawables(
@@ -76,54 +76,52 @@ export module GraphUtils {
 
     export function reduceTree<T>(
         subRootId: number,
-        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        toDo: (reducedResult: T, currentId: number, index?: number, arr?: number[]) => T,
         childRelations: GT.ChildRelations,
         priority: Priority = DEPTH,
-    ): T[] {
+        initialValue: T,
+    ): T {
         if ( priority === BREADTH) {
-            return reduceBreadthFirst(subRootId, toDo, childRelations);
+            return reduceBreadthFirst(subRootId, toDo, childRelations, initialValue);
         }
-        return reduceDepthFirst(subRootId, toDo, childRelations);
+        return reduceDepthFirst(subRootId, toDo, childRelations, initialValue);
     }
 
     export function reduceDepthFirst<T>(
         subRootId: number,
-        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
         childRelations: GT.ChildRelations,
-    ): T[] {
-        if (!childRelations[subRootId]) { return []; }
+        initialValue: T,
+    ): T {
+        if (!childRelations[subRootId]) { return null; }
 
-        const results: T[] = [];
-        results.push(
-            ...childRelations[subRootId].reduce(
-                (subResult, currentId, subIndex, subArr) => {
-                    subResult.push(...reduceTree(currentId, toDo, childRelations));
-                    return subResult;
-                },
-                []
-            )
+        const result: T = childRelations[subRootId].reduce(
+            (subResult, currentId, subIndex, subArr) => {
+                reduceDepthFirst(currentId, toDo, childRelations, initialValue);
+                return subResult;
+            },
+            initialValue
         );
 
-        results.push(
-            ...childRelations[subRootId].reduce(
+        childRelations[subRootId].reduce(
                 toDo,
-                []
-            )
+                result
         );
 
-        return results;
+        return result;
     }
 
     export function reduceBreadthFirst<T>(
         subRootId: number,
-        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
         childRelations: GT.ChildRelations,
-    ): T[] {
-        const results: T[] = [];
+        initialValue: T,
+    ): T {
         let currentLayer: number[] = childRelations[subRootId];
+        let result = initialValue;
 
         while (currentLayer.length > 0) {
-            results.push(...currentLayer.reduce(toDo, []));
+            result = currentLayer.reduce(toDo, result);
             currentLayer = currentLayer.reduce(
                 (newLayer, currentId) => {
                     newLayer.push(...childRelations[currentId]);
@@ -133,7 +131,7 @@ export module GraphUtils {
             );
         }
 
-        return results;
+        return result;
     }
 
     export function getAncestorsBreadthFirst(
