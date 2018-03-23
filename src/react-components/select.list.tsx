@@ -8,6 +8,7 @@ import { ElementToggles } from '../redux-model/redux.toggle.actions';
 interface Props {
     selectedIds: number[];
     elementIndex: GT.ElementIndex;
+    parentRelation: GT.ParentRelations;
     childRelations: GT.ChildRelations;
     // tslint:disable: no-any
     toggleSelect: (id: number) => any;
@@ -20,18 +21,19 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (props) => {
     const {
         selectedIds,
         elementIndex,
+        parentRelation,
         childRelations,
         toggleSelect,
         toggleFilled,
         toggleClosed
     } = props;
 
-    const toDo = (results: JSX.Element[], currentId: number): JSX.Element[] => {
+    const toDo = (results: {id: number, el: JSX.Element}[], currentId: number): {id: number, el: JSX.Element}[] => {
         const isSelected = selectedIds.includes(currentId);
         const element = elementIndex[currentId];
         const drawable = element.type === GT.Types.DRAWABLE ? element as GT.DrawableElement : null;
-
-        results.push (
+        const idx = results.findIndex((res) => res.id === parentRelation[currentId]);
+        results.splice(idx, 0, { id: currentId, el: (
             <div id={`element-${currentId}`} className="me-tool">
             <input
                 className="me-select-box"
@@ -61,13 +63,13 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (props) => {
                 ) : null
             }
             </div>
-        );
+        )});
         return results;
     };
-
+    const initialValue = [{ id: 0, el: (<div/>)}];
     return (
         <div>
-            {GU.reduceTree(0, toDo, childRelations, GU.BREADTH)}
+            {GU.reduceTree(0, toDo, childRelations, GU.BREADTH, initialValue).map(kv => kv.el)}
         </div>
     );
 };
@@ -77,6 +79,7 @@ const stateToProps = (state: ReduxState) => {
         selectedIds: state.selectedIds,
         elementIndex: state.elementIndex,
         childRelations: state.childRelations,
+        parentRelation: state.parentRelations,
     };
 };
 
