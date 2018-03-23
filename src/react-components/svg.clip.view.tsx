@@ -5,7 +5,10 @@ import { GraphUtils as GU } from '../data-model/model.graph.utils';
 
 const stateToProps = (state: ReduxState): Props => ({
     selectedIds: state.selectedIds,
-    drawables: GU.getDrawables(state.clippedGraph.elementIndex, state.clippedGraph.relations.childRelations),
+    drawables: GU.getDrawables(
+        state.clippedGraph.elementIndex,
+        state.clippedGraph.relations.childRelations,
+    ),
     dimensions: state.dimensions,
 });
 

@@ -52,20 +52,26 @@ export class Context {
         GU.relate(parentId, childId, this.graph.relations, false);
     }
 
-    public getAncestors(
-        subRootId: number,
-        ...ids: number[]
-    ): number[] {
-        return GU.getAncestors(subRootId, this.childRelations, ...ids);
+    public getAncestors( { subRootId = 0, priority = GU.DEPTH, selector }: {
+            subRootId?: number,
+            priority?: GU.Priority,
+            selector?: (id: number) => boolean;
+    } = {}): number[] {
+        return GU.getAncestors(this.childRelations, {subRootId, priority, selector});
     }
 
-    public getDrawables(): GT.DrawableElement[] {
-        return GU.getDrawables(this.elementIndex, this.childRelations);
+    public getDrawables( { subRootId = 0, priority = GU.DEPTH, selector }: {
+            subRootId?: number,
+            priority?: GU.Priority,
+            selector?: (id: number) => boolean;
+    } = {}): GT.DrawableElement[] {
+        return GU.getDrawables(this.elementIndex, this.childRelations, {subRootId, priority, selector});
     }
 
     public reduceTree<T>(
         subRootId: number,
         toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        priority: GU.Priority = GU.DEPTH,
     ): T[] {
         return GU.reduceTree<T>(subRootId, toDo, this.childRelations);
     }

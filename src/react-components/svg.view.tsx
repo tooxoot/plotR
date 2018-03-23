@@ -25,7 +25,10 @@ export const SVG_VIEW_COMPONENT: React.SFC<Props> = ({selectedIds, drawables, di
 
 const stateToProps = (state: ReduxState): Props => ({
     selectedIds: state.selectedIds,
-    drawables: GU.getDrawables(state.elementIndex, state.childRelations),
+    drawables: GU.getDrawables(
+        state.elementIndex,
+        state.childRelations,
+    ),
     dimensions: state.dimensions,
 });
 
