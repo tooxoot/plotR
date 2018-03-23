@@ -3,12 +3,11 @@ import { XY, GraphicValues } from './svg.model';
 export module GraphTypes {
 
     export module Types {
-        export const ELEMENT = 'ELEMENT';
         export const ROOT = 'ROOT';
         export const GROUP = 'GROUP';
-        export const MODEL = 'MODEL';
         export const DRAWABLE = 'DRAWABLE';
     }
+    export type Type = 'ROOT' | 'GROUP' | 'DRAWABLE';
 
     export type Dimensions = {
          X: number;

@@ -1,6 +1,10 @@
 import { GraphTypes as GT } from './model.graph.types';
 
 export module GraphUtils {
+    export const BREADTH = 'breadth';
+    export const DEPTH = 'depth';
+    export type Priority = 'breadth' | 'depth';
+
     export function relate(
         parentId: number,
         childId: number,
@@ -27,33 +31,62 @@ export module GraphUtils {
     }
 
     export function getAncestors(
-        subRootId: number,
         childRelations: GT.ChildRelations,
-        ...ids: number[]
+        {
+            subRootId = 0,
+            priority = DEPTH,
+            selector
+        }: {
+            subRootId?: number,
+            priority?: Priority,
+            selector?: (id: number) => boolean;
+        } = {}
     ): number[] {
         const toDo = (reducedResults: number[], currentId: number) => {
-            if (ids.length === 0 || ids.includes(currentId)) {
+            if (!selector || selector(currentId)) {
                 reducedResults.push(currentId);
             }
             return reducedResults;
         };
-        return reduceTree<number>(subRootId, toDo, childRelations);
+        return reduceTree<number>(subRootId, toDo, childRelations, priority);
     }
 
     export function getDrawables(
         elementIndex: GT.ElementIndex,
-        childRelations: GT.ChildRelations
+        childRelations: GT.ChildRelations,
+        {
+            subRootId = 0,
+            priority = DEPTH,
+            selector,
+        }: {
+            subRootId?: number,
+            priority?: Priority,
+            selector?: (id: number) => boolean;
+        } = {}
     ): GT.DrawableElement[] {
-        const toDo = (results: GT.DrawableElement[], currentId: number) => {
-            if (elementIndex[currentId].type === GT.Types.DRAWABLE) {
-                results.push(elementIndex[currentId] as GT.DrawableElement);
-            }
-            return results;
-        };
-        return reduceTree(0, toDo, childRelations);
+        const drawableSelector = (id: number) => (
+            elementIndex[id].type === GT.Types.DRAWABLE &&
+            (!selector || selector(id))
+        );
+        return getAncestors(
+            childRelations,
+            { subRootId, priority, selector: drawableSelector }
+        ).map(id => elementIndex[id] as GT.DrawableElement);
     }
 
     export function reduceTree<T>(
+        subRootId: number,
+        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        childRelations: GT.ChildRelations,
+        priority: Priority = DEPTH,
+    ): T[] {
+        if ( priority === BREADTH) {
+            return reduceBreadthFirst(subRootId, toDo, childRelations);
+        }
+        return reduceDepthFirst(subRootId, toDo, childRelations);
+    }
+
+    export function reduceDepthFirst<T>(
         subRootId: number,
         toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
         childRelations: GT.ChildRelations,
@@ -79,5 +112,36 @@ export module GraphUtils {
         );
 
         return results;
+    }
+
+    export function reduceBreadthFirst<T>(
+        subRootId: number,
+        toDo: (reducedResults: T[], currentId: number, index?: number, arr?: number[]) => T[],
+        childRelations: GT.ChildRelations,
+    ): T[] {
+        const results: T[] = [];
+        let currentLayer: number[] = childRelations[subRootId];
+
+        while (currentLayer.length > 0) {
+            results.push(...currentLayer.reduce(toDo, []));
+            currentLayer = currentLayer.reduce(
+                (newLayer, currentId) => {
+                    newLayer.push(...childRelations[currentId]);
+                    return newLayer;
+                },
+                [] as number[]
+            );
+        }
+
+        return results;
+    }
+
+    export function getAncestorsBreadthFirst(
+        subRootId: number,
+        childRelations: GT.ChildRelations,
+        ...id: number[]
+    ): number[] {
+
+        return null;
     }
 }

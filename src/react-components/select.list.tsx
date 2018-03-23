@@ -32,7 +32,7 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (props) => {
         const drawable = element.type === GT.Types.DRAWABLE ? element as GT.DrawableElement : null;
 
         results.push (
-            <div className="me-tool">
+            <div id={`element-${currentId}`} className="me-tool">
             <input
                 className="me-select-box"
                 type="checkbox"
@@ -67,7 +67,7 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (props) => {
 
     return (
         <div>
-        {GU.reduceTree(0, toDo, childRelations)}
+            {GU.reduceTree(0, toDo, childRelations, GU.BREADTH)}
         </div>
     );
 };

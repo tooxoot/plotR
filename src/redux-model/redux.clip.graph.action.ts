@@ -21,7 +21,10 @@ export module ClipGraph {
     }
 
     export function reduce(state: ReduxState): ReduxState {
-        const drawables = GU.getDrawables(state.elementIndex, state.childRelations);
+        const drawables = GU.getDrawables(
+            state.elementIndex,
+            state.childRelations,
+        );
         const clippedDrawables = ClipUtils.clip(drawables);
         const clippedContext = Context.createNewRoot(state.dimensions);
         clippedContext.add(0, ...clippedDrawables);
