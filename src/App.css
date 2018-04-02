@@ -8,7 +8,8 @@
                         "view   treeview"
                         "view   toolbox";
   grid-template-rows: 4% 48% 48%;
-  grid-template-columns: 80% 20%;
+  grid-template-columns: 60% 40%;
+  overflow: hidden
 }
 
 #topbar {
@@ -32,6 +33,8 @@
 
 #toolbox {
   grid-area: toolbox;
+  overflow-y: scroll;
+  overflow-x: hidden;
   background-color: #906060;
 }
 
