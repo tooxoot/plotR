@@ -40,6 +40,10 @@ export interface IdAction extends Redux.Action {
     id: number;
 }
 
+export interface ListAction extends Redux.Action {
+    ids: number[];
+}
+
 function mainReducer ( state: ReduxState, action: Redux.Action): ReduxState {
     if (!reducerMap[action.type]) {
         console.error(`redux.state.ts: Unknown action type ${action.type}!`);
