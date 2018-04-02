@@ -4,6 +4,7 @@ export module GraphUtils {
     export const BREADTH = 'breadth';
     export const DEPTH = 'depth';
     export type Priority = 'breadth' | 'depth';
+    export type treeReducer<T> = (reducedResult: T, currentId: number, index?: number, arr?: number[]) => T;
 
     export function relate(
         parentId: number,
@@ -76,7 +77,7 @@ export module GraphUtils {
 
     export function reduceTree<T>(
         subRootId: number,
-        toDo: (reducedResult: T, currentId: number, index?: number, arr?: number[]) => T,
+        toDo: treeReducer<T>,
         childRelations: GT.ChildRelations,
         priority: Priority = DEPTH,
         initialValue: T,
@@ -89,31 +90,25 @@ export module GraphUtils {
 
     export function reduceDepthFirst<T>(
         subRootId: number,
-        toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
+        toDo: treeReducer<T>,
         childRelations: GT.ChildRelations,
         initialValue: T,
     ): T {
         if (!childRelations[subRootId]) { return null; }
 
-        const result: T = childRelations[subRootId].reduce(
+        return childRelations[subRootId].reduce(
             (subResult, currentId, subIndex, subArr) => {
                 reduceDepthFirst(currentId, toDo, childRelations, initialValue);
+                toDo(subResult, currentId, subIndex, subArr);
                 return subResult;
             },
             initialValue
         );
-
-        childRelations[subRootId].reduce(
-                toDo,
-                result
-        );
-
-        return result;
     }
 
     export function reduceBreadthFirst<T>(
         subRootId: number,
-        toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
+        toDo: treeReducer<T>,
         childRelations: GT.ChildRelations,
         initialValue: T,
     ): T {
