@@ -1,18 +1,18 @@
 import * as Redux from 'redux';
 import { ReduxState } from './redux.state';
 import { ClipUtils } from '../data-model/svg.clipping';
-import { GraphUtils as GU } from '../data-model/model.graph.utils';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeUtils as TU } from '../data-model/model.tree.utils';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { Context } from '../data-model/model.context';
 
-export module ClipGraph {
+export module ClipTree {
     export interface StateExtension {
-        clippedGraph: GT.Graph;
+        clippedTree: TT.Tree;
     }
 
-    export const initialStateExtension: StateExtension = { clippedGraph: null };
+    export const initialStateExtension: StateExtension = { clippedTree: null };
 
-    export const TYPE = 'CLIP_GRAPH';
+    export const TYPE = 'CLIP_TREE';
 
     export function action(): Redux.Action {
         return {
@@ -21,18 +21,18 @@ export module ClipGraph {
     }
 
     export function reduce(state: ReduxState): ReduxState {
-        const drawables = GU.getDrawables(
-            state.elementIndex,
+        const drawables = TU.getDrawables(
+            state.nodeIndex,
             state.childRelations,
         );
         const clippedDrawables = ClipUtils.clip(drawables);
         const clippedContext = Context.createNewRoot(state.dimensions);
         clippedContext.add(0, ...clippedDrawables);
-        const newClippedGraph = clippedContext.pull();
+        const newClippedTree = clippedContext.pull();
 
         return {
             ...state,
-            clippedGraph: newClippedGraph,
+            clippedTree: newClippedTree,
         };
     }
 

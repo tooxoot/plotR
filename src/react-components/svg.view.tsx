@@ -1,14 +1,14 @@
 import * as ReactRedux from 'react-redux';
 import * as React from 'react';
 import { ReduxState } from '../redux-model/redux.state';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
-import { GraphUtils as GU } from '../data-model/model.graph.utils';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
+import { TreeUtils as TU } from '../data-model/model.tree.utils';
 import { PATH_ELEMENT } from './svg.path.element';
 
 export interface Props {
     selectedIds: number[];
-    drawables: GT.DrawableElement[];
-    dimensions: GT.Dimensions;
+    drawables: TT.DrawableNode[];
+    dimensions: TT.Dimensions;
 }
 
 export const SVG_VIEW_COMPONENT: React.SFC<Props> = ({selectedIds, drawables, dimensions}) => (
@@ -25,8 +25,8 @@ export const SVG_VIEW_COMPONENT: React.SFC<Props> = ({selectedIds, drawables, di
 
 const stateToProps = (state: ReduxState): Props => ({
     selectedIds: state.selectedIds,
-    drawables: GU.getDrawables(
-        state.elementIndex,
+    drawables: TU.getDrawables(
+        state.nodeIndex,
         state.childRelations,
     ),
     dimensions: state.dimensions,

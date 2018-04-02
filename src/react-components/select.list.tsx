@@ -1,51 +1,50 @@
 import * as ReactRedux from 'react-redux';
 import * as React from 'react';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
-import { GraphUtils as GU } from '../data-model/model.graph.utils';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
+import { TreeUtils as TU } from '../data-model/model.tree.utils';
 import { ReduxState } from '../redux-model/redux.state';
 import { GROUP_ENTRY } from './group.entry';
 import { DRAWABLE_ENTRY } from './drawable.entry';
 const stateToProps = (state: ReduxState) => {
     return {
         selectedIds: state.selectedIds,
-        elementIndex: state.elementIndex,
+        nodeIndex: state.nodeIndex,
         childRelations: state.childRelations,
     };
 };
 
 interface Props {
     selectedIds: number[];
-    elementIndex: GT.ElementIndex;
-    childRelations: GT.ChildRelations;
+    nodeIndex: TT.NodeIndex;
+    childRelations: TT.ChildRelations;
 }
 
 const SELECT_LIST_COMPONENT: React.SFC<Props> = (
     {
         selectedIds,
-        elementIndex,
-        // parentRelation: GT.ParentRelations;
+        nodeIndex,
         childRelations,
     }: Props
 ) => {
-    const toDo: GU.treeReducer<JSX.Element[]> = (entries, currentId) => {
-        const e = elementIndex[currentId];
+    const toDo: TU.treeReducer<JSX.Element[]> = (entries, currentId) => {
+        const e = nodeIndex[currentId];
         const isSelected = selectedIds.includes(e.id);
 
         switch (e.type) {
-            case GT.Types.GROUP:
+            case TT.NodeTypes.GROUP:
                 entries.unshift((<GROUP_ENTRY id={e.id} childRelations={childRelations}/>));
                 break;
-            case GT.Types.DRAWABLE:
+            case TT.NodeTypes.DRAWABLE:
                 entries.unshift(
                     <DRAWABLE_ENTRY
                         id={e.id}
                         isSelected={isSelected}
-                        drawable={e as GT.DrawableElement}
+                        drawable={e as TT.DrawableNode}
                     />
                 );
                 break;
             default:
-            console.error(`Unknown Element Type ${e.type}`);
+            console.error(`Unknown Node Type ${e.type}`);
         }
 
         return entries;
@@ -54,7 +53,7 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
     return (
 
         <div>
-            {GU.reduceDepthFirst(0, toDo, childRelations, [])}
+            {TU.reduceDepthFirst(0, toDo, childRelations, [])}
         </div>
     );
 };

@@ -1,21 +1,21 @@
 import * as ReactRedux from 'react-redux';
 import * as React from 'react';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { ReduxState, IdAction } from '../redux-model/redux.state';
-import { ElementToggles } from '../redux-model/redux.toggle.actions';
+import { NodeToggles } from '../redux-model/redux.toggle.actions';
 
 const  dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
     {
-        toggleSelect: (id: number) => dispatch<IdAction>(ElementToggles.actionSelect(id)),
-        toggleFilled: (id: number) => dispatch<IdAction>(ElementToggles.actionFilling(id)),
-        toggleClosed: (id: number) => dispatch<IdAction>(ElementToggles.actionClose(id))
+        toggleSelect: (id: number) => dispatch<IdAction>(NodeToggles.actionSelect(id)),
+        toggleFilled: (id: number) => dispatch<IdAction>(NodeToggles.actionFilling(id)),
+        toggleClosed: (id: number) => dispatch<IdAction>(NodeToggles.actionClose(id))
     }
 );
 
 interface Props {
     id: number;
     isSelected: boolean;
-    drawable: GT.DrawableElement;
+    drawable: TT.DrawableNode;
     // tslint:disable: no-any
     toggleSelect: (id: number) => any;
     toggleFilled: (id: number) => any;
@@ -33,7 +33,7 @@ const COMPONENT: React.SFC<Props> = (
         toggleClosed
     }: Props
 ) => (
-    <div id={`element-${id}`} className="me-tool">
+    <div id={`node-${id}`} className="me-tool">
         <input
             className="me-select-box"
             type="checkbox"

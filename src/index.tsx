@@ -6,10 +6,10 @@ import './index.css';
 import { Provider } from 'react-redux';
 import { RSTORE } from './redux-model/redux.state';
 import { ProcessSvgSource } from './redux-model/redux.process.action';
-import { ClipGraph } from './redux-model/redux.clip.graph.action';
+import { ClipTree } from './redux-model/redux.clip.tree.action';
 
 RSTORE.dispatch<{type: string}>(ProcessSvgSource.action());
-RSTORE.dispatch<{type: string}>(ClipGraph.action());
+RSTORE.dispatch<{type: string}>(ClipTree.action());
 console.log(RSTORE.getState());
 
 ReactDOM.render(

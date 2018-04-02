@@ -1,5 +1,5 @@
 import { XY } from '../data-model/svg.model';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 export module HPGLUtils {
 
     /**
@@ -15,15 +15,15 @@ export module HPGLUtils {
      * This function converts all provided ModelElements to HPGL output,
      * applies the provided scaling and creates initial overhead.
      */
-    export function convertToHPGL(drawable: GT.DrawableElement[], scaling: Scaling): string[] {
+    export function convertToHPGL(drawable: TT.DrawableNode[], scaling: Scaling): string[] {
         const result: string[] = [];
 
         result.push('IN;');
         result.push('VS1;');
         result.push('SP1;');
 
-        drawable.forEach(modelElement => {
-            result.push(...convertElement(modelElement, scaling));
+        drawable.forEach(node => {
+            result.push(...convertNode(node, scaling));
         });
 
         return result;
@@ -33,7 +33,7 @@ export module HPGLUtils {
      * This function converts the provided ModelElements to HPGL output,
      *  and applies the provided scaling.
      */
-    function convertElement(drawable: GT.DrawableElement, scaling: Scaling): string[] {
+    function convertNode(drawable: TT.DrawableNode, scaling: Scaling): string[] {
         const result: string[] = [];
         const scaledPoints = drawable.points.map(point => scale(point, scaling));
         const firstPoint = scaledPoints[0];

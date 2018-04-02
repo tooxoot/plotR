@@ -1,5 +1,5 @@
 import { XY } from './svg.model';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { ClipUtils, ClipType } from './svg.clipping';
 
 export interface Progression {
@@ -22,24 +22,24 @@ export interface Bounding {
 }
 
 export function clipFilling(
-    fillingElements: GT.DrawableElement[],
-    boundingElement: GT.DrawableElement,
+    fillingNodes: TT.DrawableNode[],
+    boundingNode: TT.DrawableNode,
     regardClosing: boolean = true
-): GT.DrawableElement[] {
-    const clippedFillings: GT.DrawableElement[] = [];
+): TT.DrawableNode[] {
+    const clippedFillings: TT.DrawableNode[] = [];
 
-    fillingElements.forEach( fillingElement => {
-        const results = ClipUtils.clipTwo(fillingElement, boundingElement, regardClosing, ClipType.Intersect);
+    fillingNodes.forEach( fillingNode => {
+        const results = ClipUtils.clipTwo(fillingNode, boundingNode, regardClosing, ClipType.Intersect);
         clippedFillings.push(...results);
     });
 
     return clippedFillings;
 }
 
-export function createFillingElements(
+export function createFillingNodes(
     progression: Progression,
-    drawingCallback: (dI: DrawInitials) => GT.DrawableElement[] ): GT.DrawableElement[] {
-    const result: GT.DrawableElement[] = [];
+    drawingCallback: (dI: DrawInitials) => TT.DrawableNode[] ): TT.DrawableNode[] {
+    const result: TT.DrawableNode[] = [];
     // let delta = progression.delta;
     let currentInitials: DrawInitials = progression.start;
 
@@ -51,7 +51,7 @@ export function createFillingElements(
     return result;
 }
 
-export function getBoundingBox(...modelElements: GT.DrawableElement[]): Bounding {
+export function getBoundingBox(...drawables: TT.DrawableNode[]): Bounding {
     const initialBounding = {
         minX: Number.MAX_VALUE,
         maxX: Number.MIN_VALUE,
@@ -59,9 +59,9 @@ export function getBoundingBox(...modelElements: GT.DrawableElement[]): Bounding
         maxY: Number.MIN_VALUE
     };
 
-    const bounding = modelElements.reduce(
-        (currentBounding: Bounding, element) => {
-            element.points.forEach(point => {
+    const bounding = drawables.reduce(
+        (currentBounding: Bounding, node) => {
+            node.points.forEach(point => {
                 if (point.X < currentBounding.minX) { currentBounding.minX = point.X; }
                 if (point.X > currentBounding.maxX) { currentBounding.maxX = point.X; }
                 if (point.Y < currentBounding.minY) { currentBounding.minY = point.Y; }

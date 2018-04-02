@@ -12,17 +12,17 @@ export module ProcessSvgSource {
     }
 
     export function reduce(state: ReduxState): ReduxState {
-        const graph = processSVG(state.svgSource);
+        const tree = processSVG(state.svgSource);
 
-        console.log(graph);
+        console.log(tree);
 
         return {
             ...state,
             selectedIds: [],
-            dimensions: graph.dimensions,
-            elementIndex: graph.elementIndex,
-            parentRelations: graph.relations.parentRelations,
-            childRelations: graph.relations.childRelations,
+            dimensions: tree.dimensions,
+            nodeIndex: tree.nodeIndex,
+            parentRelations: tree.relations.parentRelations,
+            childRelations: tree.relations.childRelations,
         };
 
     }

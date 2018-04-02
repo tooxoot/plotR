@@ -1,5 +1,5 @@
 import { XY } from './svg.model';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 const ClipperLib = require('clipper-lib');
 
 export enum ClipType {
@@ -18,8 +18,8 @@ export module ClipUtils {
      * Clips each of the subjects' ModelElements with the upper elements.
      * @return An array consisting of the clipping results.
      */
-    export function clip(subjects: GT.DrawableElement[]): GT.DrawableElement[] {
-        const solution: GT.DrawableElement[] = [];
+    export function clip(subjects: TT.DrawableNode[]): TT.DrawableNode[] {
+        const solution: TT.DrawableNode[] = [];
 
         for (let i = 0; i < subjects.length - 1; i++) {
             if (!subjects[i].outlined) { continue; }
@@ -36,14 +36,14 @@ export module ClipUtils {
      * @return An array consisting of the clipping results.
      */
     export function clipMultipleClips(
-        subject: GT.DrawableElement,
-        clippingElements: GT.DrawableElement[]
-    ): GT.DrawableElement[] {
-        let solution: GT.DrawableElement[] = [subject];
+        subject: TT.DrawableNode,
+        clippingNodes: TT.DrawableNode[]
+    ): TT.DrawableNode[] {
+        let solution: TT.DrawableNode[] = [subject];
 
-        for (let i = 0; i < clippingElements.length; i++) {
+        for (let i = 0; i < clippingNodes.length; i++) {
             if (solution === []) { break; }
-            const currentClip = clippingElements[i];
+            const currentClip = clippingNodes[i];
             if (currentClip.filled) { solution = clipMultipleSubjects(solution, currentClip); }
         }
 
@@ -55,13 +55,13 @@ export module ClipUtils {
      * @return An array consisting of the clipping results.
      */
     export function clipMultipleSubjects(
-        subjects: GT.DrawableElement[],
-        clippingElement: GT.DrawableElement
-    ): GT.DrawableElement[] {
-        let solution: GT.DrawableElement[] = [];
+        subjects: TT.DrawableNode[],
+        clippingNode: TT.DrawableNode
+    ): TT.DrawableNode[] {
+        let solution: TT.DrawableNode[] = [];
 
         subjects.forEach(subject => {
-            const temp = clipTwo(subject, clippingElement);
+            const temp = clipTwo(subject, clippingNode);
             solution = solution.concat(temp);
         });
 
@@ -75,17 +75,17 @@ export module ClipUtils {
      * @return An array consisting of the clipping results.
      */
     export function clipTwo(
-        subject: GT.DrawableElement,
-        clippingElement: GT.DrawableElement,
+        subject: TT.DrawableNode,
+        clippingNode: TT.DrawableNode,
         regardClosing: boolean = false,
         clipType: ClipType = ClipType.Difference
-    ): GT.DrawableElement[] {
+    ): TT.DrawableNode[] {
         const clipper = new ClipperLib.Clipper();
         const solutionTree = new ClipperLib.PolyTree();
         const clippingPoints = subject.closed ? subject.points.concat(subject.points[0]) : subject.points;
 
         clipper.AddPath(clippingPoints, ClipperLib.PolyType.ptSubject, regardClosing && subject.closed);
-        clipper.AddPath(clippingElement.points, ClipperLib.PolyType.ptClip, true);
+        clipper.AddPath(clippingNode.points, ClipperLib.PolyType.ptClip, true);
         clipper.Execute(clipType,
                         solutionTree,
                         ClipperLib.PolyFillType.pftNonZero,
@@ -97,7 +97,7 @@ export module ClipUtils {
                 ClipperLib.Clipper.OpenPathsFromPolyTree(solutionTree);
 
         return result.map((element: Array<XY>) => {
-            return GT.newDrawableElement({
+            return TT.newDrawableNode({
                 points: element,
                 closed: regardClosing && subject.closed,
                 filled: regardClosing && subject.filled,

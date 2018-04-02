@@ -1,8 +1,8 @@
 import * as React from 'react';
-import {GraphTypes as GT } from '../data-model/model.graph.types';
+import {TreeTypes as TT } from '../data-model/model.tree.types';
 
 interface Props {
-    drawable: GT.DrawableElement;
+    drawable: TT.DrawableNode;
     selected: boolean;
 }
 
@@ -17,7 +17,7 @@ export const PATH_ELEMENT: React.SFC<Props> = ({drawable, selected}) => {
     );
 };
 
-function calcDString(drawable: GT.DrawableElement): string {
+function calcDString(drawable: TT.DrawableNode): string {
     let result = '';
 
     drawable.points.forEach((point, i) => {

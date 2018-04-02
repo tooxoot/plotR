@@ -1,8 +1,8 @@
 import * as Redux from 'redux';
 import { ReduxState, IdAction, ListAction } from './redux.state';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 
-export module ElementToggles {
+export module NodeToggles {
 
     export const TYPE_SELECT = 'TOGGLE_SELECT';
     export const TYPE_SELECT_LIST = 'TOGGLE_SELECT_LIST';
@@ -85,11 +85,11 @@ export module ElementToggles {
     };
 
     function reduceToggleDrawableFlag(state: ReduxState, id: number, key: string): ReduxState {
-        const element = state.elementIndex[id];
+        const node = state.nodeIndex[id];
 
-        if ( element.type !== GT.Types.DRAWABLE) { return state; }
+        if ( node.type !== TT.NodeTypes.DRAWABLE) { return state; }
 
-        let drawable = element as GT.DrawableElement;
+        let drawable = node as TT.DrawableNode;
         drawable = {
             ...drawable,
             [key]: !drawable[key]
@@ -97,8 +97,8 @@ export module ElementToggles {
 
         return {
             ...state,
-            elementIndex: {
-                ...state.elementIndex,
+            nodeIndex: {
+                ...state.nodeIndex,
                 [id]: drawable,
             }
         };

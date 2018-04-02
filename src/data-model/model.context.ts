@@ -1,36 +1,36 @@
-import { GraphTypes as GT } from './model.graph.types';
-import { GraphUtils as GU } from './model.graph.utils';
+import { TreeTypes as TT } from './model.tree.types';
+import { TreeUtils as TU } from './model.tree.utils';
 
 export class Context {
-    private dimensions: GT.Dimensions;
-    private parentRelations: GT.ParentRelations;
-    private childRelations: GT.ChildRelations;
-    private elementIndex: GT.ElementIndex;
-    private graph: GT.Graph;
+    private dimensions: TT.Dimensions;
+    private parentRelations: TT.ParentRelations;
+    private childRelations: TT.ChildRelations;
+    private nodeIndex: TT.NodeIndex;
+    private tree: TT.Tree;
 
     public static createNewRoot({X, Y}: {X: number, Y: number}): Context {
         return new Context({
             dimensions: { X: X, Y: Y, center: {X: X / 2, Y: Y / 2}},
             parentRelations: { 0: -1 },
             childRelations: { 0: [] },
-            elementIndex: { 0: { id: 0, type: GT.Types.ROOT } },
+            nodeIndex: { 0: { id: 0, type: TT.NodeTypes.ROOT } },
         });
     }
 
-    constructor ({dimensions, parentRelations, childRelations, elementIndex}: {
-        dimensions: GT.Dimensions,
-        parentRelations: GT.ParentRelations,
-        childRelations: GT.ChildRelations,
-        elementIndex: GT.ElementIndex,
+    constructor ({dimensions, parentRelations, childRelations, nodeIndex}: {
+        dimensions: TT.Dimensions,
+        parentRelations: TT.ParentRelations,
+        childRelations: TT.ChildRelations,
+        nodeIndex: TT.NodeIndex,
     }
     ) {
         this.dimensions = {...dimensions};
         this.parentRelations = {...parentRelations};
         this.childRelations = {...childRelations};
-        this.elementIndex = {...elementIndex};
-        this.graph = {
+        this.nodeIndex = {...nodeIndex};
+        this.tree = {
             dimensions: this.dimensions,
-            elementIndex: this.elementIndex,
+            nodeIndex: this.nodeIndex,
             relations: {
                 parentRelations: this.parentRelations,
                 childRelations: this.childRelations,
@@ -38,48 +38,48 @@ export class Context {
         };
     }
 
-    public add(parentId: number, ...genericElements: GT.GenericElement[]) {
-        genericElements.forEach(gE => this.elementIndex[gE.id] = gE);
-        genericElements.forEach(gE => this.childRelations[gE.id] = []);
-        genericElements.forEach(gE => this.relate(parentId, gE.id));
+    public add(parentId: number, ...genericNodes: TT.GenericNode[]) {
+        genericNodes.forEach(gE => this.nodeIndex[gE.id] = gE);
+        genericNodes.forEach(gE => this.childRelations[gE.id] = []);
+        genericNodes.forEach(gE => this.relate(parentId, gE.id));
     }
 
-    public get(...ids: number[]): GT.GenericElement[] {
-        return ids.map(id => this.elementIndex[id]);
+    public get(...ids: number[]): TT.GenericNode[] {
+        return ids.map(id => this.nodeIndex[id]);
     }
 
     public relate(parentId: number, childId: number) {
-        GU.relate(parentId, childId, this.graph.relations, false);
+        TU.relate(parentId, childId, this.tree.relations, false);
     }
 
-    public getAncestors( { subRootId = 0, priority = GU.DEPTH, selector }: {
+    public getAncestors( { subRootId = 0, priority = TU.DEPTH, selector }: {
             subRootId?: number,
-            priority?: GU.Priority,
+            priority?: TU.Priority,
             selector?: (id: number) => boolean;
     } = {}): number[] {
-        return GU.getAncestors(this.childRelations, {subRootId, priority, selector});
+        return TU.getAncestors(this.childRelations, {subRootId, priority, selector});
     }
 
-    public getDrawables( { subRootId = 0, priority = GU.DEPTH, selector }: {
+    public getDrawables( { subRootId = 0, priority = TU.DEPTH, selector }: {
             subRootId?: number,
-            priority?: GU.Priority,
+            priority?: TU.Priority,
             selector?: (id: number) => boolean;
-    } = {}): GT.DrawableElement[] {
-        return GU.getDrawables(this.elementIndex, this.childRelations, {subRootId, priority, selector});
+    } = {}): TT.DrawableNode[] {
+        return TU.getDrawables(this.nodeIndex, this.childRelations, {subRootId, priority, selector});
     }
 
     public reduceTree<T>(
         subRootId: number,
         toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
-        priority: GU.Priority = GU.DEPTH,
+        priority: TU.Priority = TU.DEPTH,
         initialValue: T
     ): T {
-        return GU.reduceTree<T>(subRootId, toDo, this.childRelations, priority, initialValue);
+        return TU.reduceTree<T>(subRootId, toDo, this.childRelations, priority, initialValue);
     }
 
-    public pull(): GT.Graph {
+    public pull(): TT.Tree {
         this.lock();
-        return this.graph;
+        return this.tree;
     }
 
     public lock() {

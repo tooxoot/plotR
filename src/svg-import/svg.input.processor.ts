@@ -5,7 +5,7 @@ import { processEllipseElement } from './svg.ellipse.processor';
 import { processRectangleElement } from './svg.rectangle.processor';
 import { XY } from '../data-model/svg.model';
 import { Context } from '../data-model/model.context';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { transform } from './svg.transformation.processor';
 
 export interface ChildResult {
@@ -13,7 +13,7 @@ export interface ChildResult {
     closed: boolean;
 }
 
-export function processSVG(svgRoot: HTMLElement): GT.Graph {
+export function processSVG(svgRoot: HTMLElement): TT.Tree {
     const svgWidth = svgRoot.getAttribute('width');
     const svgHeight = svgRoot.getAttribute('height');
     const context = Context.createNewRoot({X: +(svgWidth) * 100, Y: +(svgHeight) * 100});
@@ -29,17 +29,17 @@ function processGroup(context: Context, currentGroupId: number, svgGroup: HTMLEl
         const currentChild = <HTMLElement> svgGroup.children.item(i);
 
         if (currentChild.tagName === 'g') {
-            const groupElement = GT.newGroupElement();
-            context.add(currentGroupId, groupElement);
-            processGroup(context, groupElement.id, currentChild);
+            const groupNode = TT.newGroupNode();
+            context.add(currentGroupId, groupNode);
+            processGroup(context, groupNode.id, currentChild);
         } else {
-            const drawableElement = processChild(currentChild);
-            context.add(currentGroupId, drawableElement);
+            const drawableNode = processChild(currentChild);
+            context.add(currentGroupId, drawableNode);
         }
     }
 }
 
-function processChild(svgChild: HTMLElement): GT.DrawableElement {
+function processChild(svgChild: HTMLElement): TT.DrawableNode {
     let tempResult: ChildResult;
 
     switch (svgChild.tagName) {
@@ -90,7 +90,7 @@ function processChild(svgChild: HTMLElement): GT.DrawableElement {
         tempResult.points = transform(tempResult.points, svgChild);
     }
 
-    return GT.newDrawableElement({
+    return TT.newDrawableNode({
         points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
         filled: isFilled(svgChild),
         outlined: hasOutline(svgChild),

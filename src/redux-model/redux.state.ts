@@ -1,38 +1,38 @@
 import * as Redux from 'redux';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
-import { ElementToggles } from './redux.toggle.actions';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
+import { NodeToggles } from './redux.toggle.actions';
 import { ProcessSvgSource } from './redux.process.action';
 import { ToggleDebugView } from './redux.debug.view.actions';
-import { ClipGraph } from './redux.clip.graph.action';
+import { ClipTree } from './redux.clip.tree.action';
 import { LineFilling } from './redux.line.filling';
 
 export interface ReduxState extends
     ToggleDebugView.StateExtension,
-    ClipGraph.StateExtension {
+    ClipTree.StateExtension {
     selectedIds: number[];
-    dimensions: GT.Dimensions;
-    elementIndex: GT.ElementIndex;
-    parentRelations: GT.ParentRelations;
-    childRelations: GT.ChildRelations;
+    dimensions: TT.Dimensions;
+    nodeIndex: TT.NodeIndex;
+    parentRelations: TT.ParentRelations;
+    childRelations: TT.ChildRelations;
     svgSource: HTMLElement;
 }
 
 const initialState: ReduxState = {
     selectedIds: [],
     dimensions: null,
-    elementIndex: {},
+    nodeIndex: {},
     parentRelations: {},
     childRelations: {},
     svgSource: document.getElementById('SVG'),
     ...ToggleDebugView.initialStateExtension,
-    ...ClipGraph.initialStateExtension,
+    ...ClipTree.initialStateExtension,
 };
 
 const reducerMap: {[type: string]: (state: ReduxState, action: Redux.Action) => ReduxState} = {
     ...ProcessSvgSource.reducerMap,
     ...ToggleDebugView.reducerMap,
-    ...ClipGraph.reducerMap,
-    ...ElementToggles.reducerMap,
+    ...ClipTree.reducerMap,
+    ...NodeToggles.reducerMap,
     ...LineFilling.reducerMap,
 };
 

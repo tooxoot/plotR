@@ -1,13 +1,13 @@
 import { XY, GraphicValues } from './svg.model';
 
-export module GraphTypes {
+export module TreeTypes {
 
-    export module Types {
+    export module NodeTypes {
         export const ROOT = 'ROOT';
         export const GROUP = 'GROUP';
         export const DRAWABLE = 'DRAWABLE';
     }
-    export type Type = 'ROOT' | 'GROUP' | 'DRAWABLE';
+    export type NodeType = 'ROOT' | 'GROUP' | 'DRAWABLE';
 
     export type Dimensions = {
          X: number;
@@ -15,29 +15,29 @@ export module GraphTypes {
          center: XY;
     };
 
-    export type Graph = {
+    export type Tree = {
         dimensions: Dimensions;
-        elementIndex: ElementIndex;
+        nodeIndex: NodeIndex;
         relations: Relations;
     };
 
-    export type ElementIndex = { [elemtId: number]: GenericElement};
+    export type NodeIndex = { [elemtId: number]: GenericNode};
 
     export type Relations = {
         parentRelations: ParentRelations,
         childRelations: ChildRelations
     };
 
-    export type ParentRelations = { [elementId: number]: number };
+    export type ParentRelations = { [nodeId: number]: number };
 
-    export type ChildRelations = { [elementId: number]: number[] };
+    export type ChildRelations = { [nodeId: number]: number[] };
 
-    export interface GenericElement {
+    export interface GenericNode {
         readonly id: number;
         readonly type: string;
     }
 
-    export interface DrawableProps {
+    export interface DrawableProperties {
         points: XY[];
         filled: boolean;
         outlined: boolean;
@@ -45,28 +45,28 @@ export module GraphTypes {
         graphicValues?: GraphicValues;
     }
 
-    export interface DrawableElement extends GenericElement, DrawableProps {}
+    export interface DrawableNode extends GenericNode, DrawableProperties {}
 
-    export interface GroupElement extends GenericElement {}
+    export interface GroupNode extends GenericNode {}
 
     let currentIdCounter: number = 1;
 
-    export function newDrawableElement(
-        drawableProps: DrawableProps
-    ): DrawableElement {
-        const dE: DrawableElement = {
+    export function newDrawableNode(
+        drawableProps: DrawableProperties
+    ): DrawableNode {
+        const dE: DrawableNode = {
             id: currentIdCounter++,
-            type: Types.DRAWABLE,
+            type: NodeTypes.DRAWABLE,
             ...drawableProps,
         };
 
         return dE;
     }
 
-    export function newGroupElement(): GroupElement {
+    export function newGroupNode(): GroupNode {
         return {
             id: currentIdCounter++,
-            type: Types.GROUP,
+            type: NodeTypes.GROUP,
         };
     }
 

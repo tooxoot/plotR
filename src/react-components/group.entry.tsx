@@ -1,18 +1,18 @@
 import * as ReactRedux from 'react-redux';
 import * as React from 'react';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { ReduxState, ListAction } from '../redux-model/redux.state';
-import { ElementToggles } from '../redux-model/redux.toggle.actions';
+import { NodeToggles } from '../redux-model/redux.toggle.actions';
 
 const dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
     {
-        toggleSelectList: (ids: number[]) => dispatch<ListAction>(ElementToggles.actionSelectList(ids)),
+        toggleSelectList: (ids: number[]) => dispatch<ListAction>(NodeToggles.actionSelectList(ids)),
     }
 );
 
 interface Props {
     id: number;
-    childRelations: GT.ChildRelations;
+    childRelations: TT.ChildRelations;
     // tslint:disable:nextLine no-any
     toggleSelectList: (ids: number[]) => any;
 }
@@ -24,7 +24,7 @@ const COMPONENT: React.SFC<Props> = (
         toggleSelectList
     }: Props
 ) => (
-    <div id={`element-${id}`} className="me-tool">
+    <div id={`node-${id}`} className="me-tool">
         <button
             className="me-select-box"
             type="checkbox"

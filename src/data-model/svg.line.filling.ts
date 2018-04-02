@@ -1,23 +1,23 @@
 import { XY } from './svg.model';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import {
     scale,
     clipFilling,
     DrawInitials,
     Progression,
-    createFillingElements,
+    createFillingNodes,
     add,
     rotate,
     getBoundingBox
 } from './svg.filler';
 
 export function createSimpleLineFilling(
-    filledElement: GT.DrawableElement,
+    filledNode: TT.DrawableNode,
     angle: number,
     spacing: number,
     offset: number,
-    dimensions: GT.Dimensions,
-): GT.DrawableElement[] {
+    dimensions: TT.Dimensions,
+): TT.DrawableNode[] {
     /*
     Note Lines should be orthogonal to progression
     For lines:          angle = 0 => vl = [0,1]
@@ -28,7 +28,7 @@ export function createSimpleLineFilling(
 
     const zeroZero = {X: 0, Y: 0};
 
-    const filledBounds = getBoundingBox(filledElement);
+    const filledBounds = getBoundingBox(filledNode);
     const filledDimX = filledBounds.maxX - filledBounds.minX;
     const filledDimY = filledBounds.maxY - filledBounds.minY;
 
@@ -50,8 +50,8 @@ export function createSimpleLineFilling(
     });
 
     const drawingCallback = getDrawLineCallBack(dimensions, angle);
-    const lines = createFillingElements(progression, drawingCallback);
-    const clippedLines = clipFilling(lines, filledElement);
+    const lines = createFillingNodes(progression, drawingCallback);
+    const clippedLines = clipFilling(lines, filledNode);
 
     return clippedLines;
 }
@@ -90,10 +90,10 @@ function countedVectorProgression (args: {
 }
 
 function getDrawLineCallBack(
-    dimensions: GT.Dimensions,
+    dimensions: TT.Dimensions,
     angle?: number,
-): (initials: DrawInitials) => GT.DrawableElement[] {
-    return function(currentInitials: DrawInitials): GT.DrawableElement[] {
+): (initials: DrawInitials) => TT.DrawableNode[] {
+    return function(currentInitials: DrawInitials): TT.DrawableNode[] {
         const usedAngle = angle != null ? angle : currentInitials.angle;
         const pV = rotate({X: 0, Y: 0}, {X: 0, Y: 1}, usedAngle);
 
@@ -108,7 +108,7 @@ function getDrawLineCallBack(
         const pR = add(currentInitials.position , {X: tMax * pV.X, Y: tMax * pV.Y});
         const pL = add(currentInitials.position , {X: tMin * pV.X, Y: tMin * pV.Y});
 
-        return [GT.newDrawableElement({
+        return [TT.newDrawableNode({
             points: [pR, pL],
             filled: false,
             outlined: true,

@@ -1,16 +1,10 @@
 import * as Redux from 'redux';
 import { ReduxState } from './redux.state';
-import { GraphTypes as GT } from '../data-model/model.graph.types';
+import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { createSimpleLineFilling } from '../data-model/svg.line.filling';
 import { Context } from '../data-model/model.context';
 
 export module LineFilling {
-    // export interface StateExtension {
-    //     clippedGraph: GT.Graph;
-    // }
-
-    // export const initialStateExtension: StateExtension = { clippedGraph: null };
-
     export interface Arguments {
         id: number;
         angle: number;
@@ -35,9 +29,9 @@ export module LineFilling {
     export function reduce(state: ReduxState, rAction: Redux.Action): ReduxState {
         const fillAction = rAction as Action;
 
-        if (state.elementIndex[fillAction.id].type !== GT.Types.DRAWABLE) { return state; }
+        if (state.nodeIndex[fillAction.id].type !== TT.NodeTypes.DRAWABLE) { return state; }
 
-        const filledDrawable = state.elementIndex[fillAction.id] as GT.DrawableElement;
+        const filledDrawable = state.nodeIndex[fillAction.id] as TT.DrawableNode;
 
         const lineDrawables = createSimpleLineFilling(
             filledDrawable,
@@ -49,20 +43,20 @@ export module LineFilling {
 
         if (lineDrawables.length === 0) { return state; }
 
-        const fillingGroup = GT.newGroupElement();
+        const fillingGroup = TT.newGroupNode();
         const newContext = new Context(state);
 
         newContext.add(filledDrawable.id, fillingGroup);
         newContext.add(fillingGroup.id, ...lineDrawables);
 
-        const newGraph = newContext.pull();
-        console.log(lineDrawables, newGraph);
+        const newTree = newContext.pull();
+        console.log(lineDrawables, newTree);
         return {
             ...state,
-            dimensions: newGraph.dimensions,
-            elementIndex: newGraph.elementIndex,
-            parentRelations: newGraph.relations.parentRelations,
-            childRelations: newGraph.relations.childRelations,
+            dimensions: newTree.dimensions,
+            nodeIndex: newTree.nodeIndex,
+            parentRelations: newTree.relations.parentRelations,
+            childRelations: newTree.relations.childRelations,
         };
     }
 
