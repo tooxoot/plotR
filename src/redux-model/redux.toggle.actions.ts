@@ -1,10 +1,11 @@
 import * as Redux from 'redux';
-import { ReduxState, IdAction } from './redux.state';
+import { ReduxState, IdAction, ListAction } from './redux.state';
 import { GraphTypes as GT } from '../data-model/model.graph.types';
 
 export module ElementToggles {
 
     export const TYPE_SELECT = 'TOGGLE_SELECT';
+    export const TYPE_SELECT_LIST = 'TOGGLE_SELECT_LIST';
     export const TYPE_FILLING = 'TOGGLE_FILLING';
     export const TYPE_CLOSE = 'TOGGLE_CLOSE';
 
@@ -12,6 +13,13 @@ export module ElementToggles {
         return {
             type: TYPE_SELECT,
             id: toggledId,
+        };
+    }
+
+    export function actionSelectList(toggledIds: number[]): ListAction {
+        return {
+            type: TYPE_SELECT_LIST,
+            ids: toggledIds,
         };
     }
 
@@ -45,6 +53,22 @@ export module ElementToggles {
         };
     }
 
+    export function reduceSelectList(state: ReduxState, reduxAction: Redux.Action): ReduxState {
+        const toggledIds = (reduxAction as ListAction).ids;
+        let newSelectedIds: number[];
+
+        if (state.selectedIds.includes(toggledIds[0])) {
+            newSelectedIds = state.selectedIds.filter(id => !toggledIds.includes(id));
+        } else {
+            newSelectedIds = state.selectedIds.concat(toggledIds);
+        }
+
+        return {
+            ...state,
+            selectedIds: newSelectedIds
+        };
+    }
+
     export function reduceFilling(state: ReduxState, action: Redux.Action): ReduxState {
         return reduceToggleDrawableFlag(state, (action as IdAction).id, 'filled');
     }
@@ -55,6 +79,7 @@ export module ElementToggles {
 
     export const reducerMap = {
         [TYPE_SELECT]: reduceSelect,
+        [TYPE_SELECT_LIST]: reduceSelectList,
         [TYPE_FILLING]: reduceFilling,
         [TYPE_CLOSE]: reduceClose,
     };
