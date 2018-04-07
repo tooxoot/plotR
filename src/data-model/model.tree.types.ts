@@ -5,9 +5,11 @@ export module TreeTypes {
     export module NodeTypes {
         export const ROOT = 'ROOT';
         export const GROUP = 'GROUP';
+        export const DRAWABLE_GROUP = 'DRAWABLE_GROUP';
+        export const FILLING_GROUP = 'FILLING_GROUP';
         export const DRAWABLE = 'DRAWABLE';
     }
-    export type NodeType = 'ROOT' | 'GROUP' | 'DRAWABLE';
+    export type NodeType = 'ROOT' | 'GROUP' | 'DRAWABLE' | 'FILLING_GROUP' | 'DRAWABLE_GROUP';
 
     export type Dimensions = {
          X: number;
@@ -51,12 +53,18 @@ export module TreeTypes {
 
     let currentIdCounter: number = 1;
 
+    function newNode(type: NodeType): GenericNode {
+        return {
+            id: currentIdCounter++,
+            type,
+        };
+    }
+
     export function newDrawableNode(
         drawableProps: DrawableProperties
     ): DrawableNode {
         const dE: DrawableNode = {
-            id: currentIdCounter++,
-            type: NodeTypes.DRAWABLE,
+            ...newNode(NodeTypes.DRAWABLE),
             ...drawableProps,
         };
 
@@ -64,10 +72,14 @@ export module TreeTypes {
     }
 
     export function newGroupNode(): GroupNode {
-        return {
-            id: currentIdCounter++,
-            type: NodeTypes.GROUP,
-        };
+        return newNode(NodeTypes.GROUP);
     }
 
+    export function newFillingGroupNode(): GroupNode {
+        return newNode(NodeTypes.FILLING_GROUP);
+    }
+
+    export function newDrawableGroupNode(): GroupNode {
+        return newNode(NodeTypes.DRAWABLE_GROUP);
+    }
 }
