@@ -42,9 +42,23 @@ export module LineFilling {
         );
 
         if (lineDrawables.length === 0) { return state; }
+        
+        
+        const parentId = state.parentRelations[fillAction.id];
+        const parentType = state.nodeIndex[parentId].type;
 
-        const fillingGroup = TT.newGroupNode();
+
+
+        const fillingGroup = TT.newFillingGroupNode();
         const newContext = new Context(state);
+
+        if (parentType === TT.NodeTypes.DRAWABLE_GROUP) {
+            newContext.add(filledDrawable.id, fillingGroup);
+            newContext.add(fillingGroup.id, ...lineDrawables);
+
+        }
+
+
 
         newContext.add(filledDrawable.id, fillingGroup);
         newContext.add(fillingGroup.id, ...lineDrawables);

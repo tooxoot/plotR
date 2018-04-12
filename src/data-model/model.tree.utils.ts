@@ -6,6 +6,8 @@ export module TreeUtils {
     export type Priority = 'breadth' | 'depth';
     export type treeReducer<T> = (reducedResult: T, currentId: number, index?: number, arr?: number[]) => T;
 
+    export function changePosition
+
     export function relate(
         parentId: number,
         childId: number,
