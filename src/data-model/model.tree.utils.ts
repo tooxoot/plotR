@@ -6,18 +6,43 @@ export module TreeUtils {
     export type Priority = 'breadth' | 'depth';
     export type treeReducer<T> = (reducedResult: T, currentId: number, index?: number, arr?: number[]) => T;
 
+    export function move(
+        childId: number,
+        direction: 1 | -1 |  'DOWN' | 'UP',
+        {parentRelations, childRelations}: TT.Relations,
+        createNewRelations: boolean = true,
+    ): TT.Relations {
+        const newPRs: TT.ParentRelations = createNewRelations ? {...parentRelations} : parentRelations;
+        const newCRs: TT.ChildRelations = createNewRelations ? {...childRelations} : childRelations;
+        const parentId = newPRs[childId];
+        const oldPosition = newCRs[parentId].findIndex(id => id === childId);
+
+        const step =
+            direction === 1 || direction === -1 ? direction :
+            direction === 'UP' ? 1 :
+            direction === 'DOWN' ? -1 :
+            0;
+
+        newCRs[parentId] = newCRs[parentId].filter(id => id !== childId);
+        newCRs[parentId].splice((oldPosition % newCRs[parentId].length) + step , 0, childId);
+
+        return {
+            parentRelations: newPRs,
+            childRelations: newCRs
+        };
+    }
+
     export function relate(
         parentId: number,
         childId: number,
         {parentRelations, childRelations}: TT.Relations,
         createNewRelations: boolean = true,
     ): TT.Relations {
-
         const newPRs: TT.ParentRelations = createNewRelations ? {...parentRelations} : parentRelations;
         const newCRs: TT.ChildRelations = createNewRelations ? {...childRelations} : childRelations;
         const oldParentId = newPRs[childId];
 
-        if (oldParentId) {
+        if (oldParentId || oldParentId === 0) {
             newCRs[oldParentId] = newCRs[oldParentId].filter(id => id !== childId);
         }
 

@@ -48,6 +48,10 @@ export class Context {
         return ids.map(id => this.nodeIndex[id]);
     }
 
+    public move(childId: number, direction: 1 | -1 |  'DOWN' | 'UP' ) {
+        TU.move(childId, direction, this.tree.relations, false);
+    }
+
     public relate(parentId: number, childId: number) {
         TU.relate(parentId, childId, this.tree.relations, false);
     }
