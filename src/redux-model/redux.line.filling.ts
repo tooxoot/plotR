@@ -43,14 +43,24 @@ export module LineFilling {
 
         if (lineDrawables.length === 0) { return state; }
 
-        const fillingGroup = TT.newGroupNode();
+        let parentId = state.parentRelations[fillAction.id];
+        const parentType = state.nodeIndex[parentId].type;
+        const fillingGroup = TT.newFillingGroupNode();
         const newContext = new Context(state);
 
-        newContext.add(filledDrawable.id, fillingGroup);
+        if (parentType !== TT.NodeTypes.DRAWABLE_GROUP) {
+            const drawableGroup = TT.newDrawableGroupNode();
+
+            newContext.add(parentId, drawableGroup);
+            newContext.relate(drawableGroup.id, filledDrawable.id);
+            parentId = drawableGroup.id;
+        }
+
+        newContext.add(parentId, fillingGroup);
         newContext.add(fillingGroup.id, ...lineDrawables);
+        newContext.move(filledDrawable.id, 1);
 
         const newTree = newContext.pull();
-        console.log(lineDrawables, newTree);
         return {
             ...state,
             dimensions: newTree.dimensions,

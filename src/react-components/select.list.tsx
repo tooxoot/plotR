@@ -32,6 +32,8 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
 
         switch (e.type) {
             case TT.NodeTypes.GROUP:
+            case TT.NodeTypes.DRAWABLE_GROUP:
+            case TT.NodeTypes.FILLING_GROUP:
                 entries.unshift((<GROUP_ENTRY id={e.id} childRelations={childRelations}/>));
                 break;
             case TT.NodeTypes.DRAWABLE:
