@@ -118,6 +118,9 @@ export module TreeUtils {
         toDo: treeReducer<T>,
         childRelations: TT.ChildRelations,
         initialValue: T,
+        { skipSubtree }: {
+            skipSubtree?: (id: number) => boolean
+        } = {}
     ): T {
         if (!childRelations[subRootId]) { return null; }
 
