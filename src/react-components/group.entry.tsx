@@ -16,9 +16,10 @@ interface Props {
     id: number;
     childRelations: TT.ChildRelations;
     childrenSelected: boolean;
-    // tslint:disable:nextLine no-any
+    // tslint:disable no-any
     toggleSelectList: (ids: number[]) => any;
     toggleHideList: (id: number) => any;
+    // tslint:enable no-any    
 }
 
 const COMPONENT: React.SFC<Props> = (

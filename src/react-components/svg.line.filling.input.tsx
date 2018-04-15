@@ -5,7 +5,7 @@ import { LineFilling } from '../redux-model/redux.line.filling';
 
 interface Props {
     selectedIds: number[];
-    // tslint:disable:next-line no-any
+    // tslint:disable-next-line no-any
     fill: (args: LineFilling.Arguments) => any;
 }
 
