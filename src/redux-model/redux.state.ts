@@ -10,6 +10,7 @@ export interface ReduxState extends
     ToggleDebugView.StateExtension,
     ClipTree.StateExtension {
     selectedIds: number[];
+    hiddenSubTreeIds: number [];
     dimensions: TT.Dimensions;
     nodeIndex: TT.NodeIndex;
     parentRelations: TT.ParentRelations;
@@ -19,6 +20,7 @@ export interface ReduxState extends
 
 const initialState: ReduxState = {
     selectedIds: [],
+    hiddenSubTreeIds: [],    
     dimensions: null,
     nodeIndex: {},
     parentRelations: {},

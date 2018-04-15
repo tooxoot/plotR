@@ -1,11 +1,13 @@
 import * as Redux from 'redux';
 import { ReduxState, IdAction, ListAction } from './redux.state';
 import { TreeTypes as TT } from '../data-model/model.tree.types';
+import { TreeUtils as TU } from '../data-model/model.tree.utils';
 
 export module NodeToggles {
 
     export const TYPE_SELECT = 'TOGGLE_SELECT';
     export const TYPE_SELECT_LIST = 'TOGGLE_SELECT_LIST';
+    export const TYPE_HIDE_CHILDREN = 'TOGGLE_TYPE_HIDE_CHILDREN';
     export const TYPE_FILLING = 'TOGGLE_FILLING';
     export const TYPE_CLOSE = 'TOGGLE_CLOSE';
 
@@ -15,11 +17,18 @@ export module NodeToggles {
             id: toggledId,
         };
     }
-
+    
     export function actionSelectList(toggledIds: number[]): ListAction {
         return {
             type: TYPE_SELECT_LIST,
             ids: toggledIds,
+        };
+    }
+
+    export function actionHideChildren(toggledId: number): IdAction {
+        return {
+            type: TYPE_HIDE_CHILDREN,
+            id: toggledId,
         };
     }
 
@@ -57,7 +66,7 @@ export module NodeToggles {
         const toggledIds = (reduxAction as ListAction).ids;
         let newSelectedIds: number[];
 
-        if (state.selectedIds.includes(toggledIds[0])) {
+        if (toggledIds.some(id => state.selectedIds.includes(id))) {
             newSelectedIds = state.selectedIds.filter(id => !toggledIds.includes(id));
         } else {
             newSelectedIds = state.selectedIds.concat(toggledIds);
@@ -66,6 +75,25 @@ export module NodeToggles {
         return {
             ...state,
             selectedIds: newSelectedIds
+        };
+    }
+
+    export function reduceHideChildren(state: ReduxState, action: Redux.Action): ReduxState {
+        const toggledId = (action as IdAction).id;
+        let newHiddenSubTreeIds: number[];
+        let newSelectedIds: number[];
+
+        if (state.hiddenSubTreeIds.includes(toggledId)) {
+            newHiddenSubTreeIds = state.hiddenSubTreeIds.filter(id => id !== toggledId);
+        } else {
+            newHiddenSubTreeIds = state.hiddenSubTreeIds.concat(toggledId);
+            const ancestors = TU.getAncestors(state.childRelations, {subRootId: toggledId});
+            newSelectedIds = state.selectedIds.filter(id => !ancestors.includes(id));
+        }
+        return {
+            ...state,
+            hiddenSubTreeIds: newHiddenSubTreeIds,
+            selectedIds: newSelectedIds ? newSelectedIds : state.selectedIds,
         };
     }
 
@@ -80,6 +108,7 @@ export module NodeToggles {
     export const reducerMap = {
         [TYPE_SELECT]: reduceSelect,
         [TYPE_SELECT_LIST]: reduceSelectList,
+        [TYPE_HIDE_CHILDREN]: reduceHideChildren,
         [TYPE_FILLING]: reduceFilling,
         [TYPE_CLOSE]: reduceClose,
     };
