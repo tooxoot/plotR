@@ -106,11 +106,14 @@ export module TreeUtils {
         childRelations: TT.ChildRelations,
         priority: Priority = DEPTH,
         initialValue: T,
+        options: {
+            skipSubtree?: (id: number) => boolean
+        } = {}
     ): T {
         if ( priority === BREADTH) {
-            return reduceBreadthFirst(subRootId, toDo, childRelations, initialValue);
+            return reduceBreadthFirst(subRootId, toDo, childRelations, initialValue, options);
         }
-        return reduceDepthFirst(subRootId, toDo, childRelations, initialValue);
+        return reduceDepthFirst(subRootId, toDo, childRelations, initialValue, options);
     }
 
     export function reduceDepthFirst<T>(
@@ -118,12 +121,16 @@ export module TreeUtils {
         toDo: treeReducer<T>,
         childRelations: TT.ChildRelations,
         initialValue: T,
+        { skipSubtree }: {
+            skipSubtree?: (id: number) => boolean
+        } = {}
     ): T {
         if (!childRelations[subRootId]) { return null; }
+        if (skipSubtree && skipSubtree(subRootId)) { return null; }
 
         return childRelations[subRootId].reduce(
             (subResult, currentId, subIndex, subArr) => {
-                reduceDepthFirst(currentId, toDo, childRelations, initialValue);
+                reduceDepthFirst(currentId, toDo, childRelations, initialValue, { skipSubtree });
                 toDo(subResult, currentId, subIndex, subArr);
                 return subResult;
             },
@@ -136,6 +143,9 @@ export module TreeUtils {
         toDo: treeReducer<T>,
         childRelations: TT.ChildRelations,
         initialValue: T,
+        { skipSubtree }: {
+            skipSubtree?: (id: number) => boolean
+        } = {}
     ): T {
         let currentLayer: number[] = childRelations[subRootId];
         let result = initialValue;
@@ -144,6 +154,7 @@ export module TreeUtils {
             result = currentLayer.reduce(toDo, result);
             currentLayer = currentLayer.reduce(
                 (newLayer, currentId) => {
+                    if (skipSubtree && skipSubtree(subRootId)) { return newLayer; }
                     newLayer.push(...childRelations[currentId]);
                     return newLayer;
                 },

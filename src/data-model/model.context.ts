@@ -76,9 +76,12 @@ export class Context {
         subRootId: number,
         toDo: (reducedResults: T, currentId: number, index?: number, arr?: number[]) => T,
         priority: TU.Priority = TU.DEPTH,
-        initialValue: T
+        initialValue: T,
+        { skipSubtree }: {
+            skipSubtree?: (id: number) => boolean
+        } = {}
     ): T {
-        return TU.reduceTree<T>(subRootId, toDo, this.childRelations, priority, initialValue);
+        return TU.reduceTree<T>(subRootId, toDo, this.childRelations, priority, initialValue, {skipSubtree});
     }
 
     public pull(): TT.Tree {
