@@ -16,11 +16,11 @@ interface Props {
     id: number;
     isSelected: boolean;
     drawable: TT.DrawableNode;
-    // tslint:disable: no-any
+    // tslint:disable no-any
     toggleSelect: (id: number) => any;
     toggleFilled: (id: number) => any;
     toggleClosed: (id: number) => any;
-    // tslint:enable: no-any
+    // tslint:enable no-any
 }
 
 const COMPONENT: React.SFC<Props> = (
