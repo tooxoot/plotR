@@ -37,11 +37,23 @@ export class Context {
             },
         };
     }
-
+    
     public add(parentId: number, ...genericNodes: TT.GenericNode[]) {
         genericNodes.forEach(gE => this.nodeIndex[gE.id] = gE);
         genericNodes.forEach(gE => this.childRelations[gE.id] = []);
         genericNodes.forEach(gE => this.relate(parentId, gE.id));
+    }
+
+    public addInfront(nodeId: number, ...genericNodes: TT.GenericNode[]) {
+        const parentId = this.parentRelations[nodeId];
+        const relations = [...this.childRelations[parentId]];
+        const nodePosition = relations.findIndex(id => id === nodeId);
+        const addedIds = genericNodes.map(gN => gN.id);
+        
+        this.add(parentId, ...genericNodes);
+        relations.splice(nodePosition, 0, ...addedIds);
+
+        this.childRelations[parentId] = relations;
     }
 
     public get(...ids: number[]): TT.GenericNode[] {
