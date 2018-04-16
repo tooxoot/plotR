@@ -34,11 +34,17 @@ function extractCommands(dIn: string): Command[] {
     return commands;
 }
 
+let lP: [number, number] = [0, 0];
+
 function convertCommands(commands: Command[]): [number, number][] {
     let points: [number, number][] = [];
     let last = -1;
     let xyPair: number[];
+    let vals: number[];
+    // console.log(JSON.stringify('---'));        
     commands.forEach(command => {
+        vals = [...command.values];
+        // console.log(JSON.stringify(command.values));        
         switch (command.indicator) {
             case 'M': case 'L':
                 while ( command.values.length > 0 ) {
@@ -46,7 +52,13 @@ function convertCommands(commands: Command[]): [number, number][] {
                     last++;
                 }
                 break;
-            case 'l':
+            case 'm': case 'l':
+                if (points.length === 0) {
+                    xyPair = [command.values.shift(), command.values.shift()];
+                    points.push( [lP[0] * 0 + xyPair[0], lP[1] * 0 + xyPair[1]] );
+                    last++;
+                    console.log('>> xy', xyPair, '>>P', points[last]);
+                }
                 while ( command.values.length > 0 ) {
                     xyPair = [command.values.shift(), command.values.shift()];
                     points.push( [points[last][0] + xyPair[0], points[last][1] + xyPair[1]] );
@@ -67,7 +79,7 @@ function convertCommands(commands: Command[]): [number, number][] {
                 break;
             case 'V':
                 while ( command.values.length > 0 ) {
-                    points.push( [points[last][1], command.values.shift()] );
+                    points.push( [points[last][0], command.values.shift()] );
                     last++;
                 }
                 break;
@@ -83,14 +95,16 @@ function convertCommands(commands: Command[]): [number, number][] {
                                                             command.values,
                                                             {x: points[last][0], y: points[last][1]}
                                                             );
-                points = points.concat(convertBezierCurves(command.indicator, controlPoints));
+                const bezierPoints = convertBezierCurves(command.indicator, controlPoints);
+                last += bezierPoints.length;
+                points = points.concat(bezierPoints);
                 break;
             default:
                 console.error(`Command ${command.indicator} not specified!`);
                 break;
         }
     });
-
+    lP = [vals[vals.length - 2], vals[vals.length - 1]];
     return points;
 }
 
@@ -101,8 +115,9 @@ function convertBezierValues(
 ): {x: number, y: number}[] {
     const convertedPoints: {x: number, y: number}[] = [ lastPoint, lastPoint ];
     let currentPoint: {x: number, y: number};
-
+    console.log('val', lastPoint, values);
     let reflectionindicator = 0;
+    let lastAnchor = lastPoint;
     while ( values.length > 0 ) {
 
         // Reflect last Anchor for the smooth curve commands
@@ -117,26 +132,30 @@ function convertBezierValues(
             convertedPoints.push( reflectionResult );
         }
         reflectionindicator++;
-
+        
         currentPoint = {x: values.shift(), y: values.shift()};
 
         // Calculate absolute values from relative commands
         if ( ['q', 'c', 's', 't'].indexOf(indicator) >= 0 ) {
-            currentPoint.x += convertedPoints[convertedPoints.length - 1].x;
-            currentPoint.y += convertedPoints[convertedPoints.length - 1].y;
+            currentPoint.x += lastAnchor.x;
+            currentPoint.y += lastAnchor.y;
         }
 
         convertedPoints.push(currentPoint);
-
+        // fuck little letters!
+        if (reflectionindicator % 3 === 0) { lastAnchor = convertedPoints[convertedPoints.length - 1]; }
     }
     // Removes the point added for reflection
     convertedPoints.shift();
+    console.log('conv', [...convertedPoints]);        
+    // console.log('val', lastPoint, values);
+    
     return convertedPoints;
 }
 
 function convertBezierCurves(indicator: string, controlPoints: {x: number, y: number}[]): [number, number][] {
     const points: [number, number][] = [];
-
+    // console.log('next', controlPoints.map(e => [e.x, e.y]));
     let controlPointNumber = 3;
     // For cubic curves there is one more control-point
     if ( ['C', 'c', 'S', 's'].indexOf(indicator) >= 0 ) { controlPointNumber = 4; }
@@ -145,13 +164,16 @@ function convertBezierCurves(indicator: string, controlPoints: {x: number, y: nu
     while ( controlPoints.length > 1 ) {
         const curve = new Bezier(controlPoints.slice(0, controlPointNumber));
         controlPoints.splice(0, controlPointNumber - 1);
-        const lookUpTable = curve.getLUT(curve.length() / 10);
+        const lookUpTable = curve.getLUT(curve.length() / 1);
 
         lookUpTable.forEach(step => {
             points.push([step.x, step.y]);
         });
+        // console.log(controlPoints.map(e => [e.x, e.y]));
+        
     }
-
+    // console.log('end', controlPoints.map(e => [e.x, e.y]), points);
+    
     points.push([controlPoints[0].x, controlPoints[0].y]);
     return points;
 }

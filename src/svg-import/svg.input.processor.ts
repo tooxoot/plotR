@@ -117,6 +117,7 @@ export function extractValues(rawValues: string): number[] {
  * @return True if the given Element is filled with color.
  */
 function isFilled(svgChild: HTMLElement): boolean {
+    // return false;
     const a: boolean = svgChild.style.fill ? true : false;
     const b: boolean = svgChild.style.fill !== 'none';
     const c: boolean = svgChild.getAttribute('fill') !== 'none' ? true : false;
@@ -131,6 +132,7 @@ function isFilled(svgChild: HTMLElement): boolean {
  * @return True if the given Element has an outlining stroke.
  */
 function hasOutline(svgChild: HTMLElement): boolean {
+    // return true;
     const a: boolean = svgChild.style.stroke ? true : false;
     const b: boolean = svgChild.style.stroke !== 'none';
     const c: boolean = svgChild.getAttribute('stroke') ? true : false;
