@@ -12,6 +12,7 @@ const stateToProps = (state: ReduxState) => {
         hiddenSubTreeIds: state.hiddenSubTreeIds,
         nodeIndex: state.nodeIndex,
         childRelations: state.childRelations,
+        parentRelations: state.parentRelations
     };
 };
 
@@ -20,6 +21,7 @@ interface Props {
     hiddenSubTreeIds: number[];    
     nodeIndex: TT.NodeIndex;
     childRelations: TT.ChildRelations;
+    parentRelations: TT.ParentRelations;
 }
 
 const SELECT_LIST_COMPONENT: React.SFC<Props> = (
@@ -28,6 +30,7 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
         hiddenSubTreeIds,
         nodeIndex,
         childRelations,
+        parentRelations,
     }: Props
 ) => {
     const skipSubtree = (id: number) => hiddenSubTreeIds.includes(id);
@@ -35,29 +38,41 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
     const toDo: TU.treeReducer<JSX.Element[]> = (entries, currentId) => {
         const e = nodeIndex[currentId];
         const isSelected = selectedIds.includes(e.id);
+        const depth = TU.getDepth(e.id, parentRelations);
+        
+        let placeholder = '';
+        for (let count = 0; count < depth; count ++) {
+            placeholder += '|';
+        }
 
         switch (e.type) {
             case TT.NodeTypes.GROUP:
             case TT.NodeTypes.DRAWABLE_GROUP:
             case TT.NodeTypes.FILLING_GROUP:
                 entries.unshift((
-                    <GROUP_ENTRY 
-                        id={e.id} 
-                        childRelations={childRelations} 
-                        childrenSelected={TU
-                            .getAncestors(childRelations, {subRootId: e.id})
-                            .some(id => selectedIds.includes(id))
-                        }
-                    />
+                    <div className="node-view">
+                        {placeholder}
+                        <GROUP_ENTRY 
+                            id={e.id} 
+                            childRelations={childRelations} 
+                            childrenSelected={TU
+                                .getAncestors(childRelations, {subRootId: e.id})
+                                .some(id => selectedIds.includes(id))
+                            }
+                        />
+                    </div>
                 ));
                 break;
             case TT.NodeTypes.DRAWABLE:
                 entries.unshift(
-                    <DRAWABLE_ENTRY
-                        id={e.id}
-                        isSelected={isSelected}
-                        drawable={e as TT.DrawableNode}
-                    />
+                    <div className="node-view">
+                        {placeholder}
+                        <DRAWABLE_ENTRY
+                            id={e.id}
+                            isSelected={isSelected}
+                            drawable={e as TT.DrawableNode}
+                        />
+                    </div>
                 );
                 break;
             default:
