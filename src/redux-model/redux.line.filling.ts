@@ -51,14 +51,13 @@ export module LineFilling {
         if (parentType !== TT.NodeTypes.DRAWABLE_GROUP) {
             const drawableGroup = TT.newDrawableGroupNode();
 
-            newContext.add(parentId, drawableGroup);
+            newContext.addInfront(filledDrawable.id, drawableGroup);
             newContext.relate(drawableGroup.id, filledDrawable.id);
             parentId = drawableGroup.id;
         }
 
         newContext.add(parentId, fillingGroup);
         newContext.add(fillingGroup.id, ...lineDrawables);
-        newContext.move(filledDrawable.id, 1);
 
         const newTree = newContext.pull();
         return {
