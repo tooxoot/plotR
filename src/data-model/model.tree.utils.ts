@@ -165,12 +165,24 @@ export module TreeUtils {
         return result;
     }
 
+    export function getDepth(id: number, parentRelations: TT.ParentRelations) {
+        let depth = 0;
+        let currentId = id;
+        
+        while (currentId !== 0) {
+            currentId = parentRelations[currentId];
+            depth++;
+        }
+
+        return depth;
+    }
+
     export function getAncestorsBreadthFirst(
         subRootId: number,
         childRelations: TT.ChildRelations,
         ...id: number[]
     ): number[] {
-
+        console.error('NOT YET IMPLEMENTED!');
         return null;
     }
 }
