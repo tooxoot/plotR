@@ -32,10 +32,15 @@
 }
 
 #toolbox {
+  text-align: left;
   grid-area: toolbox;
   overflow-y: scroll;
   overflow-x: hidden;
   background-color: #906060;
+}
+
+.node-view {
+  display: flex;
 }
 
 .svg-view {
