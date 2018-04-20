@@ -13,7 +13,7 @@ export interface Props {
 
 export const SVG_VIEW_COMPONENT: React.SFC<Props> = ({selectedIds, drawables, dimensions}) => (
     <div className="svg-view">
-        <svg className="svg-view" width={dimensions.X} height={dimensions.Y}>
+        <svg className="svg-view" width={dimensions.X / 100} height={dimensions.Y / 100}>
             {
                 drawables.map(
                     d => (<PATH_ELEMENT drawable={d} selected={selectedIds.includes(d.id)}/>)
