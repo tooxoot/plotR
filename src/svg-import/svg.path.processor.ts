@@ -1,4 +1,6 @@
 import { extractValues, ChildResult } from './svg.input.processor';
+import { XY } from '../data-model/svg.model';
+
 const Bezier = require('bezier-js') as typeof BezierJs.Bezier;
 
 class Command {
@@ -10,6 +12,12 @@ class Command {
     toString(): string {
         return `{indicator: ${this.indicator}, rawValues: ${this.rawValues}, values: ${this.values} }`;
     }
+}
+
+interface ConvertedCommand {
+    indicator: string;
+    commandPoints: XY[];
+    points: XY[];
 }
 
 export function processPathElement(oldSvgElement: HTMLElement): ChildResult {
@@ -35,124 +43,190 @@ function extractCommands(dIn: string): Command[] {
 }
 
 function convertCommands(commands: Command[]): [number, number][] {
-    let points: [number, number][] = [];
-    let last = -1;
-    let xyPair: number[];
-    commands.forEach(command => {
-        switch (command.indicator) {
+    // let points: [number, number][] = [];
+    let point: XY;
+    let convertedCommands: ConvertedCommand[] = [];
+    let lastCommandPoint: XY;
+
+    commands.forEach(({indicator, values}) => {
+        const commandPoints: XY[] = [];
+        let points: XY[] = [];
+
+        const push = (...cps: XY[]) => {
+            cps.forEach(commandPoint => {
+                commandPoints.push(commandPoint);
+                lastCommandPoint = commandPoint;
+            });
+        };
+
+        switch (indicator) {
             case 'M': case 'L':
-                while ( command.values.length > 0 ) {
-                    points.push( [command.values.shift(), command.values.shift()] );
-                    last++;
+                while ( values.length > 0 ) {
+                    push({X: values.shift(), Y: values.shift()});
                 }
                 break;
-            case 'l':
-                while ( command.values.length > 0 ) {
-                    xyPair = [command.values.shift(), command.values.shift()];
-                    points.push( [points[last][0] + xyPair[0], points[last][1] + xyPair[1]] );
-                    last++;
+            case 'm': case 'l':
+                if (convertedCommands.length === 0) {
+                    push({X: values.shift(), Y: values.shift()});
+                }
+                // console.log(indicator, lastCommandPoint, values);
+                while ( values.length > 0 ) {
+                    point = {X: values.shift(), Y: values.shift()};
+                    point.X += lastCommandPoint.X;
+                    point.Y += lastCommandPoint.Y;
+                    push(point);
                 }
                 break;
             case 'H':
-                while ( command.values.length > 0 ) {
-                    points.push( [command.values.shift(), points[last][1]] );
-                    last++;
+                while ( values.length > 0 ) {
+                    push({X: values.shift(), Y: lastCommandPoint.Y});
                 }
                 break;
             case 'h':
-                while ( command.values.length > 0 ) {
-                    points.push( [points[last][0] + command.values.shift(), points[last][1]] );
-                    last++;
+                while ( values.length > 0 ) {
+                    point = {...lastCommandPoint};
+                    point.X += values.shift();
+                    push(point);
                 }
                 break;
             case 'V':
-                while ( command.values.length > 0 ) {
-                    points.push( [points[last][1], command.values.shift()] );
-                    last++;
+                while ( values.length > 0 ) {
+                    push({X: lastCommandPoint.X , Y: values.shift()});
                 }
                 break;
             case 'v':
-                while ( command.values.length > 0 ) {
-                    points.push( [points[last][0], points[last][1] + command.values.shift()] );
-                    last++;
+                while ( values.length > 0 ) {
+                    point = {...lastCommandPoint};
+                    point.Y += values.shift();
+                    push(point);
                 }
                 break;
             case 'Q': case 'q': case 'C': case 'c': case 'T': case 't': case 'S': case 's':
                 const controlPoints = convertBezierValues(
-                                                            command.indicator,
-                                                            command.values,
-                                                            {x: points[last][0], y: points[last][1]}
-                                                            );
-                points = points.concat(convertBezierCurves(command.indicator, controlPoints));
+                    indicator,
+                    values,
+                    convertedCommands,
+                );
+                push(...controlPoints);
+                const bezierPoints = convertBezierCurves(indicator, [...controlPoints]);
+                points.push(...bezierPoints);
                 break;
             default:
-                console.error(`Command ${command.indicator} not specified!`);
+                console.error(`Command ${indicator} not specified!`);
                 break;
         }
+
+        if (!['C', 'c', 'S', 's', 'Q', 'q', 'T', 't'].includes(indicator)) {
+            points = commandPoints;
+        }
+        convertedCommands.push({indicator, commandPoints, points});
     });
 
-    return points;
+    return convertedCommands.reduce(
+        (points, cc) => {
+            points.push(...cc.points.map(cp => [cp.X, cp.Y] as [number, number]));
+            return points;
+        },
+        [] as [number, number][]
+    );
 }
 
 function convertBezierValues(
     indicator: string,
     values: number[],
-    lastPoint: {x: number, y: number}
-): {x: number, y: number}[] {
-    const convertedPoints: {x: number, y: number}[] = [ lastPoint, lastPoint ];
-    let currentPoint: {x: number, y: number};
+    convertedCommands: ConvertedCommand[],
+): XY[] {
+    const lastCommand = convertedCommands.slice(-1)[0];
+    const secondlastCommand = convertedCommands.slice(-2)[0];
 
-    let reflectionindicator = 0;
+    const lastIndicator = lastCommand.indicator;
+
+    const lastCP = lastCommand.commandPoints.slice(-1)[0];
+    let secondLastCP = lastCommand.commandPoints.slice(-2)[0];
+
+    if (!secondLastCP && secondlastCommand) {
+        secondLastCP = secondlastCommand.commandPoints.slice(-1)[0];
+    }
+    if (!secondLastCP) {
+        secondLastCP = lastCP;
+    }
+
+    const convertedPoints: XY[] = [ {...secondLastCP}, {...lastCP} ];
+    let currentPoint: XY;
+    console.log('val', lastCommand, secondlastCommand, lastCP, secondLastCP, values);
+    let idx = 0;
+    let lastRelative = lastCP;
+
+    const reflect = (fix: XY, reflected: XY) => ({
+        X: 2 * fix.X - reflected.X,
+        Y: 2 * fix.Y - reflected.Y,
+    });
+
+    const isRelativ = ['q', 'c', 's', 't'].includes(indicator);
+    const isS = ['S', 's'].includes(indicator);
+    const isT = ['T', 't'].includes(indicator);
+    const previousIsNotQorT = !['Q', 'q', 'T', 't'].includes(lastIndicator);
+    const previousIsNotCorS = !['C', 'c', 'S', 's'].includes(lastIndicator);
+
     while ( values.length > 0 ) {
 
         // Reflect last Anchor for the smooth curve commands
-        if ( ['S', 's', 'T', 't'].indexOf(indicator) >= 0
-             && ( ['T', 't'].indexOf(indicator) >= 0
-             || reflectionindicator % 2 === 0 ) ) {
-            const reflectedAnchorX = convertedPoints[convertedPoints.length - 2].x;
-            const reflectedAnchorY = convertedPoints[convertedPoints.length - 2].y;
-            const fixPointX        = convertedPoints[convertedPoints.length - 1].x;
-            const fixPointY        = convertedPoints[convertedPoints.length - 1].y;
-            const reflectionResult = { x: 2 * fixPointX - reflectedAnchorX, y: 2 * fixPointY - reflectedAnchorY };
-            convertedPoints.push( reflectionResult );
+        if (
+            isT && idx === 0 && previousIsNotQorT
+            || isS && idx === 0 && previousIsNotCorS
+        ) {
+            convertedPoints.push( {...convertedPoints[1]} );
+        } else if (
+            isT
+            || isS && idx % 2 === 0
+        ) {
+            convertedPoints.push( reflect(convertedPoints.slice(-1)[0], convertedPoints.slice(-2)[0]) );
         }
-        reflectionindicator++;
 
-        currentPoint = {x: values.shift(), y: values.shift()};
+        idx++;
+
+        currentPoint = {X: values.shift(), Y: values.shift()};
 
         // Calculate absolute values from relative commands
-        if ( ['q', 'c', 's', 't'].indexOf(indicator) >= 0 ) {
-            currentPoint.x += convertedPoints[convertedPoints.length - 1].x;
-            currentPoint.y += convertedPoints[convertedPoints.length - 1].y;
+        if (isRelativ) {
+            currentPoint.X += lastRelative.X;
+            currentPoint.Y += lastRelative.Y;
         }
 
         convertedPoints.push(currentPoint);
 
+        if (
+            indicator === 'c' && idx % 3 === 0
+            || indicator === 's' && idx % 2 === 0
+            || indicator === 'q' && idx % 2 === 0
+            || indicator === 't' && idx % 1 === 0
+        ) {
+            lastRelative = convertedPoints.slice(-1)[0];
+        }
     }
     // Removes the point added for reflection
     convertedPoints.shift();
     return convertedPoints;
 }
 
-function convertBezierCurves(indicator: string, controlPoints: {x: number, y: number}[]): [number, number][] {
-    const points: [number, number][] = [];
-
+function convertBezierCurves(indicator: string, controlPoints: XY[]): XY[] {
+    const points: XY[] = [];
     let controlPointNumber = 3;
-    // For cubic curves there is one more control-point
-    if ( ['C', 'c', 'S', 's'].indexOf(indicator) >= 0 ) { controlPointNumber = 4; }
+
+    if ( ['C', 'c', 'S', 's'].includes(indicator)) { controlPointNumber = 4; }
 
     // Convert the svg curves defined by the controlPoints array into polylines
     while ( controlPoints.length > 1 ) {
-        const curve = new Bezier(controlPoints.slice(0, controlPointNumber));
+        const curve = new Bezier(controlPoints.slice(0, controlPointNumber).map(p => ({x: p.X, y: p.Y})));
         controlPoints.splice(0, controlPointNumber - 1);
-        const lookUpTable = curve.getLUT(curve.length() / 10);
+        const lookUpTable = curve.getLUT(curve.length() / 1);
 
         lookUpTable.forEach(step => {
-            points.push([step.x, step.y]);
+            points.push({X: step.x, Y: step.y});
         });
     }
 
-    points.push([controlPoints[0].x, controlPoints[0].y]);
+    points.push({...controlPoints[0]});
     return points;
 }
 
