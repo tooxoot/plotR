@@ -1,7 +1,21 @@
 import { XY } from '../data-model/svg.model';
 import { ChildResult } from './svg.input.processor';
 
-export function processEllipseElement(cx: number, cy: number, rx: number, ry: number): ChildResult {
+export const processCircleElement = (svgChild: HTMLElement): ChildResult => calculateEllipse(
+    +(svgChild.getAttribute('cx')),
+    +(svgChild.getAttribute('cy')),
+    +(svgChild.getAttribute('r')),
+    +(svgChild.getAttribute('r'))
+);
+
+export const processEllipseElement = (svgChild: HTMLElement): ChildResult => calculateEllipse(
+    +(svgChild.getAttribute('cx')),
+    +(svgChild.getAttribute('cy')),
+    +(svgChild.getAttribute('rx')),
+    +(svgChild.getAttribute('ry'))
+);
+
+function calculateEllipse(cx: number, cy: number, rx: number, ry: number): ChildResult {
     const polyPoints: XY[] = [];
 
     for (let angle = 0; angle < 360; angle += 5) {
