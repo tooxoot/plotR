@@ -1,12 +1,12 @@
 import { processPathElement } from './svg.path.processor';
 import { processLineElement } from './svg.line.processor';
-import { processPolylineElement } from './svg.polyline.processor';
-import { processEllipseElement } from './svg.ellipse.processor';
+import { processPolylineElement, processPolygonElement } from './svg.polyline.processor';
+import { processEllipseElement, processCircleElement } from './svg.ellipse.processor';
 import { processRectangleElement } from './svg.rectangle.processor';
 import { XY } from '../data-model/svg.model';
 import { Context } from '../data-model/model.context';
 import { TreeTypes as TT } from '../data-model/model.tree.types';
-import { transform } from './svg.transformation.processor';
+import { applyTransformations } from './svg.transformation.processor';
 
 export interface ChildResult {
     points: XY[];
@@ -19,84 +19,54 @@ export function processSVG(svgRoot: HTMLElement): TT.Tree {
     const context = Context.createNewRoot({X: +(svgWidth) * 100, Y: +(svgHeight) * 100});
 
     console.log(context);
-    processGroup(context, 0, svgRoot);
+    processSVGTree(context, 0, svgRoot);
 
     return context.pull();
 }
 
-function processGroup(context: Context, currentGroupId: number, svgGroup: HTMLElement) {
-    for (let i = 0; i < svgGroup.children.length; i++) {
-        const currentChild = <HTMLElement> svgGroup.children.item(i);
+function processSVGTree(context: Context, currentGroupId: number, svgSubRoot: HTMLElement) {
+    for (let i = 0; i < svgSubRoot.children.length; i++) {
+        const currentChild = <HTMLElement> svgSubRoot.children.item(i);
 
         if (currentChild.tagName === 'g') {
             const groupNode = TT.newGroupNode();
             context.add(currentGroupId, groupNode);
-            processGroup(context, groupNode.id, currentChild);
+            processSVGTree(context, groupNode.id, currentChild);
         } else {
-            const drawableNode = processChild(currentChild);
+            const drawableNode = process(currentChild);
+            if (!drawableNode) { break; }
             context.add(currentGroupId, drawableNode);
         }
     }
 }
 
-function processChild(svgChild: HTMLElement): TT.DrawableNode {
-    let tempResult: ChildResult;
+function process(svgChild: HTMLElement): TT.DrawableNode {
+    const processor: (svhChild: HTMLElement) => ChildResult = {
+        'line': processLineElement,
+        'polyline': processPolylineElement,
+        'polygon': processPolygonElement,
+        'rect': processRectangleElement,
+        'circle': processCircleElement,
+        'eclipse': processEllipseElement,
+        'path': processPathElement
+    }[svgChild.tagName];
 
-    switch (svgChild.tagName) {
-        case 'line':
-            tempResult = processLineElement(svgChild);
-            break;
-
-        case 'polyline':
-            tempResult = processPolylineElement(svgChild);
-            break;
-
-        case 'polygon':
-            tempResult = processPolylineElement(svgChild, true);
-            break;
-
-        case 'rect':
-            tempResult = processRectangleElement(+(svgChild.getAttribute('x')),
-                                                 +(svgChild.getAttribute('y')),
-                                                 +(svgChild.getAttribute('width')),
-                                                 +(svgChild.getAttribute('height')),
-                                                );
-            break;
-        case 'circle':
-            tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
-                                               +(svgChild.getAttribute('cy')),
-                                               +(svgChild.getAttribute('r')),
-                                               +(svgChild.getAttribute('r'))
-                                              );
-            break;
-
-        case 'ellipse':
-            tempResult = processEllipseElement(+(svgChild.getAttribute('cx')),
-                                               +(svgChild.getAttribute('cy')),
-                                               +(svgChild.getAttribute('rx')),
-                                               +(svgChild.getAttribute('ry'))
-                                              );
-            break;
-
-        case 'path':
-            tempResult = processPathElement(svgChild);
-            break;
-            default:
-            console.error(`Tag-name ${svgChild} not supported!`);
-            break;
+    if (!processor) {
+        console.error(`Tag-name ${svgChild.tagName} not supported!`);
+        return null;
     }
 
-    if (svgChild.getAttribute('transform')) {
-        tempResult.points = transform(tempResult.points, svgChild);
-    }
+    let {points, closed} = processor(svgChild);
+
+    points = applyTransformations(points, svgChild);
+    points.forEach(p => { p.X *= 100 ; p.Y *= 100; });
 
     return TT.newDrawableNode({
-        points: tempResult.points.map(p => ({X: p.X * 100, Y: p.Y * 100}) ),
+        points,
         filled: isFilled(svgChild),
         outlined: hasOutline(svgChild),
-        closed: tempResult.closed
+        closed
     });
-
 }
 
 export function extractValues(rawValues: string): number[] {
