@@ -1,6 +1,8 @@
 import { XY } from '../data-model/svg.model';
 import { ChildResult, extractValues } from './svg.input.processor';
 
+export const processPolygonElement = (svgChild: HTMLElement) => processPolylineElement(svgChild, true);
+
 export function processPolylineElement(svgChild: HTMLElement, isPolygon: boolean = false): ChildResult {
     const rawValues = svgChild.getAttribute('points');
     const coordinates = extractValues(rawValues);

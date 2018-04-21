@@ -23,7 +23,7 @@ interface ConvertedCommand {
 export function processPathElement(oldSvgElement: HTMLElement): ChildResult {
     const dIn = oldSvgElement.getAttribute('d');
     const commands: Command[] = extractCommands(dIn);
-    const convertedPoints: [number, number][] = convertCommands(commands);
+    const convertedPoints: XY[] = convertCommands(commands);
 
     return buildChildResult(oldSvgElement, dIn, convertedPoints);
 }
@@ -42,8 +42,7 @@ function extractCommands(dIn: string): Command[] {
     return commands;
 }
 
-function convertCommands(commands: Command[]): [number, number][] {
-    // let points: [number, number][] = [];
+function convertCommands(commands: Command[]): XY[] {
     let point: XY;
     let convertedCommands: ConvertedCommand[] = [];
     let lastCommandPoint: XY;
@@ -69,7 +68,7 @@ function convertCommands(commands: Command[]): [number, number][] {
                 if (convertedCommands.length === 0) {
                     push({X: values.shift(), Y: values.shift()});
                 }
-                // console.log(indicator, lastCommandPoint, values);
+
                 while ( values.length > 0 ) {
                     point = {X: values.shift(), Y: values.shift()};
                     point.X += lastCommandPoint.X;
@@ -124,10 +123,10 @@ function convertCommands(commands: Command[]): [number, number][] {
 
     return convertedCommands.reduce(
         (points, cc) => {
-            points.push(...cc.points.map(cp => [cp.X, cp.Y] as [number, number]));
+            points.push(...cc.points);
             return points;
         },
-        [] as [number, number][]
+        [] as XY[]
     );
 }
 
@@ -153,7 +152,6 @@ function convertBezierValues(
 
     const convertedPoints: XY[] = [ {...secondLastCP}, {...lastCP} ];
     let currentPoint: XY;
-    console.log('val', lastCommand, secondlastCommand, lastCP, secondLastCP, values);
     let idx = 0;
     let lastRelative = lastCP;
 
@@ -230,8 +228,8 @@ function convertBezierCurves(indicator: string, controlPoints: XY[]): XY[] {
     return points;
 }
 
-function buildChildResult(oldSvgElement: HTMLElement, dIn: String, convertedPoints: [number, number][]): ChildResult {
-    const processingResult: ChildResult =   {   points: convertedPoints.map(point => ({X: point[0], Y: point[1]}) ),
+function buildChildResult(oldSvgElement: HTMLElement, dIn: String, points: XY[]): ChildResult {
+    const processingResult: ChildResult =   {   points,
                                                 closed: dIn.includes('z') || dIn.includes('Z')
                                             };
 
