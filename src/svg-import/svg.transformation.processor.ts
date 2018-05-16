@@ -66,7 +66,7 @@ function applyCommand(points: XY[], {values, indicator}: Command): XY[] {
 
     const checkedValues = valueCheck();
 
-    const transformation = {
+    const transformation: (vals: number[]) => number[] = {
         'matrix': MU.transform(checkedValues),
         'translate': MU.translate(checkedValues),
         'scale': MU.scale(checkedValues),
@@ -75,5 +75,5 @@ function applyCommand(points: XY[], {values, indicator}: Command): XY[] {
         'skewY': MU.skewY(checkedValues),
     }[indicator];
 
-    return points.map(transformation);
+    return points.map(MU.withXYArgs(transformation));
 }
