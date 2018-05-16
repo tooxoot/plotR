@@ -1,237 +1,253 @@
 import { extractValues, ChildResult } from './svg.input.processor';
 import { XY } from '../data-model/svg.model';
+import { MathUtils as MU }  from '../utils/math.utils';
 
 const Bezier = require('bezier-js') as typeof BezierJs.Bezier;
 
-class Command {
-    constructor(
-        public indicator: string,
-        public rawValues: string,
-        public values: number[]
-        ) {}
-    toString(): string {
-        return `{indicator: ${this.indicator}, rawValues: ${this.rawValues}, values: ${this.values} }`;
-    }
-}
-
-interface ConvertedCommand {
+interface Command {
     indicator: string;
-    commandPoints: XY[];
-    points: XY[];
+    values: number[];
 }
 
 export function processPathElement(oldSvgElement: HTMLElement): ChildResult {
-    const dIn = oldSvgElement.getAttribute('d');
-    const commands: Command[] = extractCommands(dIn);
-    const convertedPoints: XY[] = convertCommands(commands);
+    const dString = oldSvgElement.getAttribute('d');
+    const commands: Command[] = extractCommandsFrom(dString);
+    // console.log('commands', commands);
+    const simplifiedCommands = simplify(commands);
+    // console.log('simplifiedCommands', simplifiedCommands);
+    const pathPoints = calculatePointsFor(simplifiedCommands);
 
-    return buildChildResult(oldSvgElement, dIn, convertedPoints);
+    return {
+        points: pathPoints,
+        closed: dString.includes('z') || dString.includes('Z')
+    };
 }
 
-function extractCommands(dIn: string): Command[] {
-    const scanForCommands = /([MmLlHhVvCcSsQqTt])([-\d,.\t ]*)/g;
+function extractCommandsFrom(dIn: string): Command[] {
+    const scanForCommands = /([AaMmLlHhVvCcSsQqTt])([-\d,.\t ]*)/g;
     const commands: Command[] = [];
 
     let currentMatch;
     while (currentMatch = scanForCommands.exec(dIn)) {
-        commands.push(new Command(  currentMatch[1],
-                                    currentMatch[2],
-                                    extractValues(currentMatch[2])));
+        commands.push({
+            indicator: currentMatch[1],
+            values: extractValues(currentMatch[2]),
+        });
     }
 
     return commands;
 }
 
-function convertCommands(commands: Command[]): XY[] {
-    let point: XY;
-    let convertedCommands: ConvertedCommand[] = [];
-    let lastCommandPoint: XY;
+type CommandType = 'line' | 'arc' | 'cubic' | 'cubic_reflected' | 'quadratic' | 'quadratic_reflected';
 
-    commands.forEach(({indicator, values}) => {
-        const commandPoints: XY[] = [];
-        let points: XY[] = [];
+interface SimplifiedComamnd {
+    type: CommandType;
+    points: XY[];
+}
 
-        const push = (...cps: XY[]) => {
-            cps.forEach(commandPoint => {
-                commandPoints.push(commandPoint);
-                lastCommandPoint = commandPoint;
-            });
+function simplify(commands: Command[]): SimplifiedComamnd[] {
+    let simplifiedCommands: SimplifiedComamnd[] = [];
+
+    let lastSimplified: SimplifiedComamnd;
+
+    let currentType: CommandType;
+    let commandLength: number;
+
+    // helperfunctions which map valuetouples to XY
+    let last: XY;
+    const assignLastXY = (p: XY) => {
+        last = {...p};
+        // console.log([last.X, last.Y]);
+        return p;
+    };
+
+    const asAbsolute = ([X, Y]: number[]) => assignLastXY({X, Y});
+    const asRelative =  ([X, Y]: number[], idx: number) => (idx + 1) % commandLength === 0 ?
+        assignLastXY({X: last.X + X, Y: last.Y + Y}) :
+        ({X: last.X + X, Y: last.Y + Y});
+    const asHorizontalAbsolute = ([X]: number[]) => asAbsolute([X, last.Y]);
+    const asVerticalAbsolute = ([Y]: number[]) => asAbsolute([last.X, Y]);
+    const asHorizontalRelative = ([X]: number[], idx: number) => asRelative([X, 0], idx);
+    const asVerticalRelative = ([Y]: number[], idx: number) => asRelative([0, Y], idx);
+    const asRelativeArc = ([X, Y]: number[], idx: number) => (idx + 1) % commandLength === 0 ?
+        assignLastXY({X: last.X + X, Y: last.Y + Y}) :
+        ({X, Y});
+
+    const toTouplesOf = <T>(size: number) =>
+        (touples: T[][] , val: T, idx: number, vals: T[]) => {
+            if (idx % size !== 0) { return touples; }
+            touples.push(vals.slice(idx, idx + size));
+            return touples;
         };
 
-        switch (indicator) {
-            case 'M': case 'L':
-                while ( values.length > 0 ) {
-                    push({X: values.shift(), Y: values.shift()});
-                }
-                break;
-            case 'm': case 'l':
-                if (convertedCommands.length === 0) {
-                    push({X: values.shift(), Y: values.shift()});
-                }
+    const ifArcAdd0 = () => currentType !== 'arc' ?
+        (touples: number[][], touple: number[]) => { touples.push(touple); return touples; } :
+        (touples: number[][], [rx, ry, angle, large, sweep, X, Y]: number[]) => touples.concat([
+            [rx, ry],
+            [angle, 0],
+            [large, sweep],
+            [X, Y]
+        ]);
 
-                while ( values.length > 0 ) {
-                    point = {X: values.shift(), Y: values.shift()};
-                    point.X += lastCommandPoint.X;
-                    point.Y += lastCommandPoint.Y;
-                    push(point);
-                }
-                break;
-            case 'H':
-                while ( values.length > 0 ) {
-                    push({X: values.shift(), Y: lastCommandPoint.Y});
-                }
-                break;
-            case 'h':
-                while ( values.length > 0 ) {
-                    point = {...lastCommandPoint};
-                    point.X += values.shift();
-                    push(point);
-                }
-                break;
-            case 'V':
-                while ( values.length > 0 ) {
-                    push({X: lastCommandPoint.X , Y: values.shift()});
-                }
-                break;
-            case 'v':
-                while ( values.length > 0 ) {
-                    point = {...lastCommandPoint};
-                    point.Y += values.shift();
-                    push(point);
-                }
-                break;
-            case 'Q': case 'q': case 'C': case 'c': case 'T': case 't': case 'S': case 's':
-                const controlPoints = convertBezierValues(
-                    indicator,
-                    values,
-                    convertedCommands,
-                );
-                push(...controlPoints);
-                const bezierPoints = convertBezierCurves(indicator, [...controlPoints]);
-                points.push(...bezierPoints);
-                break;
-            default:
-                console.error(`Command ${indicator} not specified!`);
-                break;
-        }
+    const addReflectedPointTo = (touple: XY[]) => {
+        const lastPoints = lastSimplified.points.slice(-2);
+        const reflectedPoint = !currentType.includes(lastSimplified.type) ?
+            lastPoints.pop() :
+            {
+                X: 2 * lastPoints[1].X - lastPoints[0].X,
+                Y: 2 * lastPoints[1].Y - lastPoints[0].Y,
+            };
 
-        if (!['C', 'c', 'S', 's', 'Q', 'q', 'T', 't'].includes(indicator)) {
-            points = commandPoints;
-        }
-        convertedCommands.push({indicator, commandPoints, points});
+        return [].concat(reflectedPoint, touple);
+    };
+
+    const pushSimplifiedCommand = (touple: XY[]) => {
+        const type = currentType;
+        const points = type.includes('reflected') ? addReflectedPointTo(touple) : touple;
+
+        if (type !== 'line') { points.unshift(lastSimplified.points.slice(-1)[0]); }
+
+        const simplifiedCommand = { type, points };
+
+        lastSimplified = simplifiedCommand;
+        simplifiedCommands.push(simplifiedCommand);
+    };
+
+    commands.forEach(({indicator, values}, notFirstCommand) => {
+        if (values.length === 0) { return; }
+
+        currentType =
+            'M m L l V v H h '.includes(indicator) ? 'line' :
+            'C c'.includes(indicator) ? 'cubic' :
+            'S s'.includes(indicator) ? 'cubic_reflected' :
+            'Q q'.includes(indicator) ? 'quadratic' :
+            'T t'.includes(indicator) ? 'quadratic_reflected' :
+            'arc';
+        // console.log(currentType);
+        commandLength =
+            'M m L l V v H h T t'.includes(indicator) ? 1 :
+            'S s Q q'.includes(indicator) ? 2 :
+            'C c'.includes(indicator) ? 3 :
+            4;
+
+        const parameterLength =
+            'V H v h'.includes(indicator) ? 1 :
+            'A a'.includes(indicator) ? 7 :
+            2;
+
+        const toAsoluteXY: (touple: number[], idx: number) => XY =
+            Object.entries({
+                'M L C S Q T A': asAbsolute,
+                'l c s q t': asRelative,
+                'm': ([X, Y]: number[], idx: number) => notFirstCommand || idx > 0 ?
+                    asRelative([X, Y], idx) :
+                    asAbsolute([X, Y]),
+                'V': asVerticalAbsolute,
+                'H': asHorizontalAbsolute,
+                'v': asVerticalRelative,
+                'h': asHorizontalRelative,
+                'a': asRelativeArc
+            }).find(([key]) => key.includes(indicator))[1] ;
+
+        // console.log(ifArcAdd0());
+
+        const  a = values
+            .reduce(toTouplesOf(parameterLength), [])
+            .reduce(ifArcAdd0(), []);
+        // console.log('>>>a', a);
+        a
+            .map(toAsoluteXY)
+            .reduce(toTouplesOf(commandLength), [])
+            .forEach(pushSimplifiedCommand);
     });
 
-    return convertedCommands.reduce(
-        (points, cc) => {
-            points.push(...cc.points);
-            return points;
-        },
-        [] as XY[]
-    );
+    return simplifiedCommands;
 }
 
-function convertBezierValues(
-    indicator: string,
-    values: number[],
-    convertedCommands: ConvertedCommand[],
-): XY[] {
-    const lastCommand = convertedCommands.slice(-1)[0];
-    const secondlastCommand = convertedCommands.slice(-2)[0];
+function calculatePointsFor(simplifiedCommands: SimplifiedComamnd[]): XY[] {
+    const extractFromCommandOf = (type: CommandType) =>
+        'line'.includes(type) ? (points: XY[]) => points :
+        'cubic cubic_reflected quadratic quadratic_reflected'.includes(type) ? calculateBezierCurvePointsFor :
+        calculateArcPointsFor;
 
-    const lastIndicator = lastCommand.indicator;
+    const toPathPoints = (extractedPoints: XY[], {type, points}: SimplifiedComamnd) =>
+        extractedPoints.concat(...extractFromCommandOf(type)(points));
 
-    const lastCP = lastCommand.commandPoints.slice(-1)[0];
-    let secondLastCP = lastCommand.commandPoints.slice(-2)[0];
-
-    if (!secondLastCP && secondlastCommand) {
-        secondLastCP = secondlastCommand.commandPoints.slice(-1)[0];
-    }
-    if (!secondLastCP) {
-        secondLastCP = lastCP;
-    }
-
-    const convertedPoints: XY[] = [ {...secondLastCP}, {...lastCP} ];
-    let currentPoint: XY;
-    let idx = 0;
-    let lastRelative = lastCP;
-
-    const reflect = (fix: XY, reflected: XY) => ({
-        X: 2 * fix.X - reflected.X,
-        Y: 2 * fix.Y - reflected.Y,
-    });
-
-    const isRelativ = ['q', 'c', 's', 't'].includes(indicator);
-    const isS = ['S', 's'].includes(indicator);
-    const isT = ['T', 't'].includes(indicator);
-    const previousIsNotQorT = !['Q', 'q', 'T', 't'].includes(lastIndicator);
-    const previousIsNotCorS = !['C', 'c', 'S', 's'].includes(lastIndicator);
-
-    while ( values.length > 0 ) {
-
-        // Reflect last Anchor for the smooth curve commands
-        if (
-            isT && idx === 0 && previousIsNotQorT
-            || isS && idx === 0 && previousIsNotCorS
-        ) {
-            convertedPoints.push( {...convertedPoints[1]} );
-        } else if (
-            isT
-            || isS && idx % 2 === 0
-        ) {
-            convertedPoints.push( reflect(convertedPoints.slice(-1)[0], convertedPoints.slice(-2)[0]) );
-        }
-
-        idx++;
-
-        currentPoint = {X: values.shift(), Y: values.shift()};
-
-        // Calculate absolute values from relative commands
-        if (isRelativ) {
-            currentPoint.X += lastRelative.X;
-            currentPoint.Y += lastRelative.Y;
-        }
-
-        convertedPoints.push(currentPoint);
-
-        if (
-            indicator === 'c' && idx % 3 === 0
-            || indicator === 's' && idx % 2 === 0
-            || indicator === 'q' && idx % 2 === 0
-            || indicator === 't' && idx % 1 === 0
-        ) {
-            lastRelative = convertedPoints.slice(-1)[0];
-        }
-    }
-    // Removes the point added for reflection
-    convertedPoints.shift();
-    return convertedPoints;
+    return simplifiedCommands.reduce(toPathPoints, []);
 }
 
-function convertBezierCurves(indicator: string, controlPoints: XY[]): XY[] {
-    const points: XY[] = [];
-    let controlPointNumber = 3;
+function calculateArcPointsFor([previousXY, radii, rotation, flags, endXY]: XY[]): XY[] {
+    const {X: x1, Y: y1} = previousXY;
+    const {X: x2, Y: y2} = endXY;
+    let {X: rX, Y: rY} = radii;
 
-    if ( ['C', 'c', 'S', 's'].includes(indicator)) { controlPointNumber = 4; }
+    const phi = rotation.X;
+    const largeFlag = Boolean(flags.X);
+    const sweepFlag = Boolean(flags.Y);
 
-    // Convert the svg curves defined by the controlPoints array into polylines
-    while ( controlPoints.length > 1 ) {
-        const curve = new Bezier(controlPoints.slice(0, controlPointNumber).map(p => ({x: p.X, y: p.Y})));
-        controlPoints.splice(0, controlPointNumber - 1);
-        const lookUpTable = curve.getLUT(curve.length() / 1);
+    const [xI, yI] = MU.transform([
+         MU.cos(phi), MU.sin(phi), 0,
+        -MU.sin(phi), MU.cos(phi), 0
+    ])([
+        (x1 - x2) / 2,
+        (y1 - y2) / 2
+    ]);
 
-        lookUpTable.forEach(step => {
-            points.push({X: step.x, Y: step.y});
-        });
+    const radiiCorrection = xI ** 2 / rX ** 2 + yI ** 2 / rY ** 2;
+    if (radiiCorrection > 1) {
+        rX = radiiCorrection ** 0.5 * rX;
+        rY = radiiCorrection ** 0.5 * rY;
     }
 
-    points.push({...controlPoints[0]});
-    return points;
+    const sign = largeFlag === sweepFlag ? -1 : 1;
+
+    const root = (
+        (rX ** 2 * rY ** 2 - rX ** 2 * yI ** 2 - rY ** 2 * xI ** 2) /
+        (rX ** 2 * yI ** 2 + rY ** 2 * xI ** 2)
+    ) ** 0.5;
+
+    const [cIX, cIY] = [
+        sign * root * (rX * yI / rY),
+        sign * root * -(rY * xI / rX),
+    ];
+
+    const [cX, cY] = MU.concat(
+        MU.transform([
+            MU.cos(phi), -MU.sin(phi), 0,
+            MU.sin(phi),  MU.cos(phi), 0
+        ]),
+        MU.translate([
+            (x1 + x2) / 2,
+            (y1 + y2) / 2,
+        ])
+    )([
+        cIX,
+        cIY
+    ]);
+
+    const vec1 = [
+        (xI - cIX) / rX,
+        (yI - cIY) / rY
+    ];
+    const vec2 = [
+        (-xI - cIX) / rX,
+        (-yI - cIY) / rY
+    ];
+
+    let theta = MU.angleTo([1, 0])(vec1);
+    let dTheta = MU.angleTo(vec1)(vec2) % 360;
+
+    if (!sweepFlag &&  dTheta > 0) { dTheta -= 360; }
+    if (sweepFlag &&  dTheta < 0) { dTheta += 360; }
+
+    return MU.calculateEllipsePoints(cX, cY, rX, rY, theta, dTheta, phi).map(MU.toXY);
 }
 
-function buildChildResult(oldSvgElement: HTMLElement, dIn: String, points: XY[]): ChildResult {
-    const processingResult: ChildResult =   {   points,
-                                                closed: dIn.includes('z') || dIn.includes('Z')
-                                            };
+function calculateBezierCurvePointsFor(controlPoints: XY[]): XY[] {
+    const curve = new Bezier(controlPoints.map(({X, Y}) => ({x: X, y: Y})));
+    const curvePoints = curve.getLUT(curve.length() / 1);
 
-    return processingResult;
+    return curvePoints
+        .map(({x, y}) => ({X: x, Y: y}))
+        .slice(1);
 }
