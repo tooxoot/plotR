@@ -10,62 +10,51 @@ export enum ClipType {
 }
 
 /**
- * This module contains functions which take care of clipping ModelElements.
+ * This module contains functions which take care of clipping DrawableNodes.
  */
 export module ClipUtils {
 
     /**
-     * Clips each of the subjects' ModelElements with the upper elements.
+     * Clips each of the subjects with the upper nodes.
      * @return An array consisting of the clipping results.
      */
     export function clip(subjects: TT.DrawableNode[]): TT.DrawableNode[] {
-        const solution: TT.DrawableNode[] = [];
-
-        for (let i = 0; i < subjects.length - 1; i++) {
-            if (!subjects[i].outlined) { continue; }
-            solution.push(...clipMultipleClips(subjects[i], subjects.slice(i + 1)));
-        }
-
-        solution.push(subjects[subjects.length - 1]);
-
-        return solution;
+        return subjects.reduce(
+            (solution, subject, idx) => !subject.outlined ?
+                solution :
+                solution.concat(...clipMultipleClips(subject, subjects.slice(idx + 1))),
+            []
+        );
     }
 
     /**
-     * Clips the subject with each of the ModelElements in upperElements.
+     * Clips the subject with each of the clippingNodes.
      * @return An array consisting of the clipping results.
      */
     export function clipMultipleClips(
         subject: TT.DrawableNode,
         clippingNodes: TT.DrawableNode[]
     ): TT.DrawableNode[] {
-        let solution: TT.DrawableNode[] = [subject];
-
-        for (let i = 0; i < clippingNodes.length; i++) {
-            if (solution === []) { break; }
-            const currentClip = clippingNodes[i];
-            if (currentClip.filled) { solution = clipMultipleSubjects(solution, currentClip); }
-        }
-
-        return solution;
+        return clippingNodes.reduce(
+            (solution, clipping, idx) => solution === [] || !clipping.filled ?
+                solution :
+                clipMultipleSubjects(solution, clipping),
+            [subject]
+        );
     }
 
     /**
-     * Clips each of the subjects' ModelElements with the clippingElements.
+     * Clips each of the subjects' with the clippingNode.
      * @return An array consisting of the clipping results.
      */
     export function clipMultipleSubjects(
         subjects: TT.DrawableNode[],
         clippingNode: TT.DrawableNode
     ): TT.DrawableNode[] {
-        let solution: TT.DrawableNode[] = [];
-
-        subjects.forEach(subject => {
-            const temp = clipTwo(subject, clippingNode);
-            solution = solution.concat(temp);
-        });
-
-        return solution;
+        return subjects.reduce(
+            (solution, subject) => solution.concat(clipTwo(subject, clippingNode)),
+            []
+        );
     }
 
     /**
@@ -82,27 +71,42 @@ export module ClipUtils {
     ): TT.DrawableNode[] {
         const clipper = new ClipperLib.Clipper();
         const solutionTree = new ClipperLib.PolyTree();
-        const clippingPoints = subject.closed ? subject.points.concat(subject.points[0]) : subject.points;
 
-        clipper.AddPath(clippingPoints, ClipperLib.PolyType.ptSubject, regardClosing && subject.closed);
-        clipper.AddPath(clippingNode.points, ClipperLib.PolyType.ptClip, true);
-        clipper.Execute(clipType,
-                        solutionTree,
-                        ClipperLib.PolyFillType.pftNonZero,
-                        ClipperLib.PolyFillType.pftNonZero
-                        );
+        console.log(subject);
+        const clippingPaths = subject.closed.map((closed, idx) =>
+            closed ?
+                subject.paths[idx].concat(subject.paths[idx][0]) :
+                subject.paths[idx]
+        );
 
-        const result = regardClosing && subject.closed ?
+        clippingPaths.forEach((path, idx) =>
+            clipper.AddPath(path, ClipperLib.PolyType.ptSubject, regardClosing && subject.closed[idx])
+        );
+
+        clippingNode.paths.forEach(path =>
+            clipper.AddPath(path, ClipperLib.PolyType.ptClip, true)
+        );
+
+        clipper.Execute(
+            clipType,
+            solutionTree,
+            ClipperLib.PolyFillType.pftEvenOdd,
+            ClipperLib.PolyFillType.pftEvenOdd
+        );
+
+        const clipperResult = regardClosing && subject.closed[0] ?
                 ClipperLib.Clipper.ClosedPathsFromPolyTree(solutionTree) :
                 ClipperLib.Clipper.OpenPathsFromPolyTree(solutionTree);
 
-        return result.map((element: Array<XY>) => {
-            return TT.newDrawableNode({
-                points: element,
-                closed: regardClosing && subject.closed,
-                filled: regardClosing && subject.filled,
-                outlined: subject.outlined,
-            });
-        });
+        // return clipperResult.map((element: Array<XY>) => {
+        return [TT.newDrawableNode({
+            paths: clipperResult as XY[][],
+            closed: clipperResult.map(() => regardClosing && subject.closed[0]),
+            filled: regardClosing && subject.filled,
+            outlined: subject.outlined,
+        })];
+        // });
+        //    */
     }
+
 }

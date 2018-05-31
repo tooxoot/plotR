@@ -9,8 +9,8 @@ import { TreeTypes as TT } from '../data-model/model.tree.types';
 import { applyTransformations } from './svg.transformation.processor';
 
 export interface ChildResult {
-    points: XY[];
-    closed: boolean;
+    paths: XY[][];
+    closed: boolean[];
 }
 
 export function processSVG(svgRoot: HTMLElement): TT.Tree {
@@ -56,13 +56,16 @@ function process(svgChild: HTMLElement): TT.DrawableNode {
         return null;
     }
 
-    let {points, closed} = processor(svgChild);
+    let {paths, closed} = processor(svgChild);
 
-    points = applyTransformations(points, svgChild);
-    points.forEach(p => { p.X *= 100 ; p.Y *= 100; });
+    paths = paths
+        .map(path => applyTransformations(path, svgChild))
+        .map(path => path.map(
+            ({X, Y}) => ({ X: X * 100, Y: Y * 100 })
+        ));
 
     return TT.newDrawableNode({
-        points,
+        paths,
         filled: isFilled(svgChild),
         outlined: hasOutline(svgChild),
         closed

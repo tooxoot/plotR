@@ -51,6 +51,8 @@ export function createSimpleLineFilling(
 
     const drawingCallback = getDrawLineCallBack(dimensions, angle);
     const lines = createFillingNodes(progression, drawingCallback);
+    console.log(lines);
+
     const clippedLines = clipFilling(lines, filledNode);
 
     return clippedLines;
@@ -109,10 +111,10 @@ function getDrawLineCallBack(
         const pL = add(currentInitials.position , {X: tMin * pV.X, Y: tMin * pV.Y});
 
         return [TT.newDrawableNode({
-            points: [pR, pL],
+            paths: [[pR, pL]],
             filled: false,
             outlined: true,
-            closed: false,
+            closed: [false],
         })];
     };
 }

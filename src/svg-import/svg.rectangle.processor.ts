@@ -7,7 +7,7 @@ export function processRectangleElement(svgChild: HTMLElement): ChildResult {
     const width = +(svgChild.getAttribute('width'));
     const height = +(svgChild.getAttribute('height'));
 
-    const polyPoints: XY[] = [
+    const polyPath: XY[] = [
         {X: x, Y: y},
         {X: x + width, Y: y},
         {X: x + width, Y: y + height},
@@ -15,7 +15,7 @@ export function processRectangleElement(svgChild: HTMLElement): ChildResult {
     ];
 
     return {
-        points: polyPoints,
-        closed: true
+        paths: [polyPath],
+        closed: [true]
     };
 }

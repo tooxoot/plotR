@@ -33,11 +33,11 @@ function extractCommands(attributeContent: string): Command[] {
     return commands;
 }
 
-function applyCommand(points: XY[], {values, indicator}: Command): XY[] {
+function applyCommand(path: XY[], {values, indicator}: Command): XY[] {
     if (!['matrix', 'translate', 'scale', 'rotate', 'skewX', 'skewY'].includes(indicator)) {
         console.error(`Tansformation: ${indicator} not supported!`);
 
-        return points.map(p => p);
+        return path.map(p => p);
     }
 
     const fill = (count: number) => () => {
@@ -75,5 +75,5 @@ function applyCommand(points: XY[], {values, indicator}: Command): XY[] {
         'skewY': MU.skewY(checkedValues),
     }[indicator];
 
-    return points.map(MU.withXYArgs(transformation));
+    return path.map(MU.withXYArgs(transformation));
 }

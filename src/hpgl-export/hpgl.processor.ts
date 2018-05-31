@@ -34,6 +34,9 @@ export module HPGLUtils {
      *  and applies the provided scaling.
      */
     function convertNode(drawable: TT.DrawableNode, scaling: Scaling): string[] {
+        // TODO
+        return [];
+        /*
         const result: string[] = [];
         const scaledPoints = drawable.points.map(point => scale(point, scaling));
         const firstPoint = scaledPoints[0];
@@ -69,20 +72,21 @@ export module HPGLUtils {
         result.push('PU;');
 
         return result;
+        */
     }
 
     /**
      * Applies scaling to given point.
      */
-    function scale(point: XY, scaling: Scaling): XY {
-        const xFactor = scaling.outputDimensions.X / scaling.inputDimensions.X;
-        const yFactor = scaling.outputDimensions.Y / scaling.inputDimensions.Y;
-        const xOut = xFactor * point.X + scaling.offset.X;
-        const yOut = yFactor * point.Y + scaling.offset.Y;
+    // function scale(point: XY, scaling: Scaling): XY {
+    //     const xFactor = scaling.outputDimensions.X / scaling.inputDimensions.X;
+    //     const yFactor = scaling.outputDimensions.Y / scaling.inputDimensions.Y;
+    //     const xOut = xFactor * point.X + scaling.offset.X;
+    //     const yOut = yFactor * point.Y + scaling.offset.Y;
 
-        return {
-            X: Math.round(xOut),
-            Y: Math.round(yOut)
-        };
-    }
+    //     return {
+    //         X: Math.round(xOut),
+    //         Y: Math.round(yOut)
+    //     };
+    // }
 }

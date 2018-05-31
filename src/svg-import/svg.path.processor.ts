@@ -12,19 +12,14 @@ interface Command {
 export function processPathElement(oldSvgElement: HTMLElement): ChildResult {
     const dString = oldSvgElement.getAttribute('d');
     const commands: Command[] = extractCommandsFrom(dString);
-    // console.log('commands', commands);
     const simplifiedCommands = simplify(commands);
-    // console.log('simplifiedCommands', simplifiedCommands);
     const pathPoints = calculatePointsFor(simplifiedCommands);
 
-    return {
-        points: pathPoints,
-        closed: dString.includes('z') || dString.includes('Z')
-    };
+    return pathPoints;
 }
 
 function extractCommandsFrom(dIn: string): Command[] {
-    const scanForCommands = /([AaMmLlHhVvCcSsQqTt])([-\d,.\t ]*)/g;
+    const scanForCommands = /([AaMmLlHhVvCcSsQqTtZz])([-+\d,.\t ]*)/g;
     const commands: Command[] = [];
 
     let currentMatch;
@@ -38,7 +33,8 @@ function extractCommandsFrom(dIn: string): Command[] {
     return commands;
 }
 
-type CommandType = 'line' | 'arc' | 'cubic' | 'cubic_reflected' | 'quadratic' | 'quadratic_reflected';
+type CommandType =
+    'move' | 'close' | 'line' | 'arc' | 'cubic' | 'cubic_reflected' | 'quadratic' | 'quadratic_reflected';
 
 interface SimplifiedComamnd {
     type: CommandType;
@@ -53,11 +49,10 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
     let currentType: CommandType;
     let commandLength: number;
 
-    // helperfunctions which map valuetouples to XY
     let last: XY;
+    let currentStart: XY;
     const assignLastXY = (p: XY) => {
         last = {...p};
-        // console.log([last.X, last.Y]);
         return p;
     };
 
@@ -102,10 +97,15 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
     };
 
     const pushSimplifiedCommand = (touple: XY[]) => {
-        const type = currentType;
+        let type = currentType;
         const points = type.includes('reflected') ? addReflectedPointTo(touple) : touple;
 
-        if (type !== 'line') { points.unshift(lastSimplified.points.slice(-1)[0]); }
+        if (type === 'move') {
+            simplifiedCommands.push({ type: 'move', points: [] });
+            type = 'line';
+        } else if (type !== 'line') {
+            points.unshift(lastSimplified.points.slice(-1)[0]);
+        }
 
         const simplifiedCommand = { type, points };
 
@@ -114,16 +114,23 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
     };
 
     commands.forEach(({indicator, values}, notFirstCommand) => {
+        if ('Z z'.includes(indicator)) {
+            simplifiedCommands.push({type: 'close', points: []});
+            console.log(simplifiedCommands);
+            last = currentStart;
+        }
         if (values.length === 0) { return; }
 
-        currentType =
-            'M m L l V v H h '.includes(indicator) ? 'line' :
-            'C c'.includes(indicator) ? 'cubic' :
-            'S s'.includes(indicator) ? 'cubic_reflected' :
-            'Q q'.includes(indicator) ? 'quadratic' :
-            'T t'.includes(indicator) ? 'quadratic_reflected' :
-            'arc';
-        // console.log(currentType);
+        currentType = Object.entries({
+            'M m': 'move',
+            'L l V v H h ': 'line',
+            'C c': 'cubic',
+            'S s': 'cubic_reflected',
+            'Q q': 'quadratic',
+            'T t': 'quadratic_reflected',
+            'A a': 'arc',
+        }).find(([key]) => key.includes(indicator))[1] as CommandType;
+
         commandLength =
             'M m L l V v H h T t'.includes(indicator) ? 1 :
             'S s Q q'.includes(indicator) ? 2 :
@@ -137,25 +144,31 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
 
         const toAsoluteXY: (touple: number[], idx: number) => XY =
             Object.entries({
-                'M L C S Q T A': asAbsolute,
+                'M': ([X, Y]: number[], idx: number) => {
+                    if (idx === 0) { currentStart = {X, Y}; }
+                    return asAbsolute([X, Y]);
+                },
+                'L C S Q T A': asAbsolute,
                 'l c s q t': asRelative,
-                'm': ([X, Y]: number[], idx: number) => notFirstCommand || idx > 0 ?
-                    asRelative([X, Y], idx) :
-                    asAbsolute([X, Y]),
+                'm': ([X, Y]: number[], idx: number) => {
+                    console.log('m >>>>');
+                    console.log({X, Y, idx, notFirstCommand, bool: notFirstCommand || idx > 0});
+                    const p = notFirstCommand || idx > 0 ?
+                        asRelative([X, Y], idx) :
+                        asAbsolute([X, Y]);
+                    if (idx === 0) { currentStart = p; }
+                    return p;
+                },
                 'V': asVerticalAbsolute,
                 'H': asHorizontalAbsolute,
                 'v': asVerticalRelative,
                 'h': asHorizontalRelative,
                 'a': asRelativeArc
             }).find(([key]) => key.includes(indicator))[1] ;
-
-        // console.log(ifArcAdd0());
-
-        const  a = values
+        console.log(indicator, toAsoluteXY);
+        values
             .reduce(toTouplesOf(parameterLength), [])
-            .reduce(ifArcAdd0(), []);
-        // console.log('>>>a', a);
-        a
+            .reduce(ifArcAdd0(), [])
             .map(toAsoluteXY)
             .reduce(toTouplesOf(commandLength), [])
             .forEach(pushSimplifiedCommand);
@@ -164,16 +177,45 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
     return simplifiedCommands;
 }
 
-function calculatePointsFor(simplifiedCommands: SimplifiedComamnd[]): XY[] {
-    const extractFromCommandOf = (type: CommandType) =>
-        'line'.includes(type) ? (points: XY[]) => points :
-        'cubic cubic_reflected quadratic quadratic_reflected'.includes(type) ? calculateBezierCurvePointsFor :
-        calculateArcPointsFor;
+function calculatePointsFor(simplifiedCommands: SimplifiedComamnd[]): {paths: XY[][], closed: boolean[]} {
+    // const paths: XY[][] = [];
+    const closed: boolean[] = simplifiedCommands
+        .filter(({type}) => 'move close'.includes(type))
+        .reduce(
+            (result, {type}, idx, commands) => type === 'move' ?
+                result.concat(Boolean(commands[idx + 1]) && commands[idx + 1].type === 'close') :
+                result,
+            []
+        );
 
-    const toPathPoints = (extractedPoints: XY[], {type, points}: SimplifiedComamnd) =>
-        extractedPoints.concat(...extractFromCommandOf(type)(points));
+    console.log(
+        simplifiedCommands,
+        simplifiedCommands.filter(({type}) => 'move close'.includes(type)),
+        closed
+    );
 
-    return simplifiedCommands.reduce(toPathPoints, []);
+    const extractFromCommandOf = (type: CommandType) => Object.entries({
+        'line close': (points: XY[]) => points,
+        'cubic cubic_reflected quadratic quadratic_reflected': calculateBezierCurvePointsFor,
+        'arc': calculateArcPointsFor,
+    }).find(([key]) => key.includes(type))[1];
+
+    // const extractFromCommandOf = (type: CommandType) =>
+    //     'line'.includes(type) ? (points: XY[]) => points :
+    //     'cubic cubic_reflected quadratic quadratic_reflected'.includes(type) ? calculateBezierCurvePointsFor :
+    //     calculateArcPointsFor;
+
+    const toPathPoints = (extractedPoints: XY[][], {type, points}: SimplifiedComamnd) => {
+        if (type === 'move') { return [...extractedPoints, []]; }
+        extractedPoints.slice(-1)[0].push(...extractFromCommandOf(type)(points));
+        return extractedPoints;
+    };
+
+    return {
+        paths: simplifiedCommands.reduce(toPathPoints, []),
+        closed
+
+    };
 }
 
 function calculateArcPointsFor([previousXY, radii, rotation, flags, endXY]: XY[]): XY[] {

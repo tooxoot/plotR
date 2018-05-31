@@ -41,6 +41,8 @@ export module LineFilling {
             state.dimensions
         );
 
+        console.log(lineDrawables);
+
         if (lineDrawables.length === 0) { return state; }
 
         let parentId = state.parentRelations[fillAction.id];

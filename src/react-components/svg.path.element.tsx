@@ -11,7 +11,7 @@ export const PATH_ELEMENT: React.SFC<Props> = ({drawable, selected}) => {
         <path
             id={'SVG_ELEMENT_' + drawable.id}
             d={calcDString(drawable)}
-            fill={drawable.filled ? 'grey' : 'none'}
+            fill={drawable.filled ? 'black' : 'none'}
             stroke={selected ? 'red' : drawable.outlined ? 'black' : 'none'}
         />
     );
@@ -20,12 +20,15 @@ export const PATH_ELEMENT: React.SFC<Props> = ({drawable, selected}) => {
 function calcDString(drawable: TT.DrawableNode): string {
     let result = '';
 
-    drawable.points.forEach((point, i) => {
-      (i === 0) ? result += 'M' : result += ' L';
-      result += ` ${point.X / 100} ${point.Y / 100}`;
+    drawable.paths.forEach((path, idx) => {
+        path.forEach((point, i) => {
+            (i === 0) ? result += 'M' : result += ' L';
+            result += ` ${point.X / 100} ${point.Y / 100}`;
+        });
+        if (drawable.closed[idx]) { result += ' Z'; }
     });
 
-    if (drawable.closed) { result += ' Z'; }
+    // if (drawable.closed) { result += ' Z'; }
 
     return result;
 }

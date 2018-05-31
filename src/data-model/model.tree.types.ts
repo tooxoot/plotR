@@ -40,10 +40,10 @@ export module TreeTypes {
     }
 
     export interface DrawableProperties {
-        points: XY[];
+        paths: XY[][];
         filled: boolean;
         outlined: boolean;
-        closed: boolean;
+        closed: boolean[];
         graphicValues?: GraphicValues;
     }
 
