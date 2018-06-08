@@ -18,7 +18,6 @@ export function processSVG(svgRoot: HTMLElement): TT.Tree {
     const svgHeight = svgRoot.getAttribute('height');
     const context = Context.createNewRoot({X: +(svgWidth) * 100, Y: +(svgHeight) * 100});
 
-    console.log(context);
     processSVGTree(context, 0, svgRoot);
 
     return context.pull();

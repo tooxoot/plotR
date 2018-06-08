@@ -117,7 +117,6 @@ function simplify(commands: Command[]): SimplifiedComamnd[] {
     commands.forEach(({indicator, values}, notFirstCommand) => {
         if ('Z z'.includes(indicator)) {
             simplifiedCommands.push({type: 'close', points: []});
-            console.log(simplifiedCommands);
             last = currentStart;
         }
         if (values.length === 0) { return; }
