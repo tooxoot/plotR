@@ -15,27 +15,32 @@ export module HPGLUtils {
      * This function converts all provided ModelElements to HPGL output,
      * applies the provided scaling and creates initial overhead.
      */
-    export function convertToHPGL(drawable: TT.DrawableNode[], scaling: Scaling): string[] {
+    export function convertToHPGL(drawables: TT.DrawableNode[], scaling: Scaling): string[] {
         const result: string[] = [];
 
         result.push('IN;');
         result.push('VS1;');
         result.push('SP1;');
 
-        drawable.forEach(node => {
-            result.push(...convertNode(node, scaling));
-        });
+        drawables.reduce(
+            (hpglStrings, drawable) => {
+                return hpglStrings.concat(
+                    ...drawable.paths.map((points, idx) => convertNode(points, drawable.closed[idx], scaling))
+                );
+            },
+            result
+        );
 
         return result;
     }
 
     /**
-     * This function converts the provided ModelElements to HPGL output,
+     * This function converts the provided ModelElement)s to HPGL output,
      *  and applies the provided scaling.
      */
-    function convertNode(drawable: TT.DrawableNode, scaling: Scaling): string[] {
+    function convertNode(points: XY[], closed: boolean, scaling: Scaling): string[] {
         const result: string[] = [];
-        const scaledPoints = drawable.points.map(point => scale(point, scaling));
+        const scaledPoints = points.map(point => scale(point, scaling));
         const firstPoint = scaledPoints[0];
         let pathString = 'PD';
 
@@ -61,7 +66,7 @@ export module HPGLUtils {
             }
         });
 
-        if (drawable.closed) {
+        if (closed) {
             pathString += `PD${scaledPoints[0].X},${scaledPoints[0].Y};`;
         }
 
