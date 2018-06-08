@@ -61,12 +61,12 @@ export function getBoundingBox(...drawables: TT.DrawableNode[]): Bounding {
 
     const bounding = drawables.reduce(
         (currentBounding: Bounding, node) => {
-            node.points.forEach(point => {
+            node.paths.forEach(path => path.forEach(point => {
                 if (point.X < currentBounding.minX) { currentBounding.minX = point.X; }
                 if (point.X > currentBounding.maxX) { currentBounding.maxX = point.X; }
                 if (point.Y < currentBounding.minY) { currentBounding.minY = point.Y; }
                 if (point.Y > currentBounding.maxY) { currentBounding.maxY = point.Y; }
-            });
+            }));
 
             return currentBounding;
         },

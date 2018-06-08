@@ -44,12 +44,6 @@ const COMPONENT: React.SFC<Props> = (
             {id} - Drawable
         </span>
         <input
-            className="me-closed-box"
-            type="checkbox"
-            checked={drawable.closed}
-            onChange={() => toggleClosed(id)}
-        />
-        <input
             className="me-filled-box"
             type="checkbox"
             checked={drawable.filled}

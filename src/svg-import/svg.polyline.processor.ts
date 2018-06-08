@@ -13,7 +13,7 @@ export function processPolylineElement(svgChild: HTMLElement, isPolygon: boolean
     }
 
     return {
-        points: polyPoints,
-        closed: isPolygon
+        paths: [polyPoints],
+        closed: [isPolygon]
     };
 }

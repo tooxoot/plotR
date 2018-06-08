@@ -13,7 +13,7 @@ export function processLineElement(svgChild: HTMLElement): ChildResult {
     ];
 
     return {
-        points: polyPoints,
-        closed: false
+        paths: [polyPoints],
+        closed: [false]
     };
 }

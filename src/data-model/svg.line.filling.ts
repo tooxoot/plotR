@@ -109,10 +109,10 @@ function getDrawLineCallBack(
         const pL = add(currentInitials.position , {X: tMin * pV.X, Y: tMin * pV.Y});
 
         return [TT.newDrawableNode({
-            points: [pR, pL],
+            paths: [[pR, pL]],
             filled: false,
             outlined: true,
-            closed: false,
+            closed: [false],
         })];
     };
 }
