@@ -18,7 +18,7 @@ const stateToProps = (state: ReduxState) => {
 
 interface Props {
     selectedIds: number[];
-    hiddenSubTreeIds: number[];    
+    hiddenSubTreeIds: number[];
     nodeIndex: TT.NodeIndex;
     childRelations: TT.ChildRelations;
     parentRelations: TT.ParentRelations;
@@ -39,10 +39,10 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
         const e = nodeIndex[currentId];
         const isSelected = selectedIds.includes(e.id);
         const depth = TU.getDepth(e.id, parentRelations);
-        
-        let placeholder = '';
+
+        let placeholder = [];
         for (let count = 0; count < depth; count ++) {
-            placeholder += '|';
+            placeholder.push(<div className="list-spacer"/>);
         }
 
         switch (e.type) {
@@ -50,22 +50,19 @@ const SELECT_LIST_COMPONENT: React.SFC<Props> = (
             case TT.NodeTypes.DRAWABLE_GROUP:
             case TT.NodeTypes.FILLING_GROUP:
                 entries.unshift((
-                    <div className="node-view">
+                    <div key={e.id} className="node-view flex">
                         {placeholder}
-                        <GROUP_ENTRY 
-                            id={e.id} 
-                            childRelations={childRelations} 
-                            childrenSelected={TU
-                                .getAncestors(childRelations, {subRootId: e.id})
-                                .some(id => selectedIds.includes(id))
-                            }
+                        <GROUP_ENTRY
+                            id={e.id}
+                            childRelations={childRelations}
+                            showSubtree={!skipSubtree(e.id)}
                         />
                     </div>
                 ));
                 break;
             case TT.NodeTypes.DRAWABLE:
                 entries.unshift(
-                    <div className="node-view">
+                    <div key={e.id} className="node-view">
                         {placeholder}
                         <DRAWABLE_ENTRY
                             id={e.id}

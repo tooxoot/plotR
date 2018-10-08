@@ -34,12 +34,13 @@ interface ButtonProps {
 }
 
 const SVG_DEBUG_BUTTON_COMPONENT: React.SFC<ButtonProps> = ({hidden, toggleHidden}) => (
-    <input
-        className="debug-toggle-box"
-        type="checkbox"
-        checked={!hidden}
-        onChange={() => toggleHidden()}
-    />
+    <div className="button content-middle-centered" onClick={() => toggleHidden()}>
+        <div>SHOW DEBUG VIEW:</div>
+        <input
+            type="checkbox"
+            checked={!hidden}
+        />
+    </div>
 );
 
 const  dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (

@@ -15,34 +15,40 @@ const dispatchToProps = (dispatch: ReactRedux.Dispatch<ReduxState>) => (
 interface Props {
     id: number;
     childRelations: TT.ChildRelations;
-    childrenSelected: boolean;
+    showSubtree: boolean;
     // tslint:disable no-any
     toggleSelectList: (ids: number[]) => any;
     toggleHideList: (id: number) => any;
-    // tslint:enable no-any    
+    // tslint:enable no-any
 }
 
 const COMPONENT: React.SFC<Props> = (
     {
         id,
         childRelations,
-        childrenSelected,
+        showSubtree,
         toggleSelectList,
         toggleHideList
     }: Props
 ) => (
-    <div id={`node-${id}`} className="me-tool">
+    <div className="list-item item-margin-small">
         <button
-            className="me-select-box"
+            className="button"
             onClick={() => toggleSelectList(TU.getAncestors(childRelations, { subRootId: id }))}
         >
-            {childrenSelected ? 'X' : 'O'}
+            SELECT SUBTREE
         </button>
         <button
-            className="me-hide-box"
-            onClick={() => toggleHideList(id)}
+            className="button content-middle-centered"
+            onClick={() => { toggleHideList(id); }}
         >
-            Y
+            SHOW SUBTREE
+            <input
+                type="checkbox"
+                className="me-hide-box"
+                disabled={true}
+                checked={showSubtree}
+            />
         </button>
         <span className="me-name">
             {id} - Group

@@ -33,22 +33,30 @@ const COMPONENT: React.SFC<Props> = (
         toggleClosed
     }: Props
 ) => (
-    <div id={`node-${id}`} className="me-tool">
-        <input
-            className="me-select-box"
-            type="checkbox"
-            checked={isSelected}
-            onChange={() => toggleSelect(id)}
-        />
+    <div className="list-item item-margin-small">
+        <button
+            className="small-circle content-middle-centered"
+            onClick={() => toggleSelect(id)}
+        >
+            <input
+                type="checkbox"
+                checked={isSelected}
+            />
+        </button>
+        <button
+            className="content-middle-centered"
+            onClick={() => toggleFilled(id)}
+        >
+            IS FILLED
+            <input
+                className="me-filled-box"
+                type="checkbox"
+                checked={drawable.filled}
+            />
+        </button>
         <span className="me-name">
             {id} - Drawable
         </span>
-        <input
-            className="me-filled-box"
-            type="checkbox"
-            checked={drawable.filled}
-            onChange={() => toggleFilled(id)}
-        />
     </div>
 );
 

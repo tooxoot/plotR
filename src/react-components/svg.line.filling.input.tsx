@@ -34,18 +34,21 @@ class FillComponent extends React.Component<Props, State> {
         );
 
         return (
-            <div>
-                Angle:
-                <input
-                    className="angle-input"
-                    type="number"
-                    value={this.state.angle}
-                    onChange={(e) => {
-                        this.setState({angle: +(e.currentTarget.value) % 180});
-                        console.log(this.state);
-                    }
-                    }
-                />
+            <div className="form">
+                <div>
+                    Angle:
+                    <input
+                        className="angle-input"
+                        type="number"
+                        value={this.state.angle}
+                        onChange={(e) => {
+                            this.setState({angle: +(e.currentTarget.value) % 180});
+                            console.log(this.state);
+                        }
+                        }
+                    />
+                </div>
+                <div>
                 Offset:
                 <input
                     className="offset-input"
@@ -53,6 +56,8 @@ class FillComponent extends React.Component<Props, State> {
                     value={(this.state.offset)}
                     onChange={(e) => this.setState({offset: Math.max(+(e.currentTarget.value), 0)})}
                 />
+                </div>
+                <div>
                 Spacing:
                 <input
                     className="spacing-input"
@@ -60,6 +65,7 @@ class FillComponent extends React.Component<Props, State> {
                     value={this.state.spacing}
                     onChange={(e) => this.setState({spacing: Math.max(+(e.currentTarget.value), 1)})}
                 />
+                </div>
                 <button onClick={fillAll}> FILL </button>
             </div>
         );

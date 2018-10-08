@@ -1,3 +1,135 @@
+button, .button {
+  font-size: 1rem;
+  -webkit-appearance: unset;
+  border-style: none;
+  border-radius: 0.5em;
+  height: 1.5rem;
+  min-width: 5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  outline-style: none;
+  background: #b0b0b0;
+  cursor: pointer;
+  color: black;
+  text-decoration: none;
+}
+
+.content-middle-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.list-item {
+  display: flex;
+  min-width: fit-content;
+  align-items: center;
+  border: 1px white solid;
+  border-radius: 0.5rem;
+  padding: 0.2rem;
+  background: #dfdfdf;
+  margin-top: 0.2rem;
+}
+
+.list-spacer {
+  padding: 0.5rem;
+}
+
+.align-middle {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%)
+}
+
+button:active {
+  border: black 1px;
+}
+
+.flex {
+  display: flex
+}
+
+.hidden {
+  display: none;
+}
+/* checkbox:checked {} */
+
+.small-circle {
+  width: 1.5rem;
+  min-width: 1.5rem;
+  height: 1.5em;
+  min-height: 1.5em;
+  border-radius: 0.75rem
+}
+
+.item-margin-small > *{
+  margin: 0.1rem;
+}
+
+.form {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+.form > div{
+  display: flex;
+  justify-content: space-between
+}
+
+.form > * {
+  margin-top: 1rem;
+}
+
+.form :first-child {
+  margin-top: 0px;
+}
+
+.form input {
+  margin-left: 0.5rem;
+}
+
+.upper-right {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+}
+
+.modal-overlay {
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+  background: black;
+  opacity: 0.5;
+}
+.modal-row {
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  z-index: 100;
+}
+.modal-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+.modal-panel {
+  position: relative;
+  padding: 0.5rem;
+  width: fit-content;
+  height: fit-content;
+  background: white;
+}
+
 .main-grid {
   text-align: center;
 
@@ -5,45 +137,41 @@
   width: 100vw;
   height: 100vh;
   grid-template-areas:  "topbar topbar"
-                        "view   treeview"
-                        "view   toolbox";
+                        "view   toolbox"
+                        "view   treeview";
   grid-template-rows: 4% 48% 48%;
   grid-template-columns: 60% 40%;
   overflow: hidden
 }
 
-#topbar {
+.topbar {
   grid-area: topbar;
+  display: flex;
+  justify-content: start;
   background-color: #404040;
+  align-items: center;
 }
 
-#view {
+.view {
   grid-area: view;
-  background-color: #909090;
+  background-color: #F0F0F0;
+  overflow: scroll;
 }
 
-#treeview {
-  grid-area: treeview;
-  background-color: #609090;
-  display: grid;
-  grid-template-rows: repeat(10, 10%);
-  grid-template-columns: repeat(4, 25%);
-  overflow: auto;
-}
-
-#toolbox {
-  text-align: left;
+.toolbox {
   grid-area: toolbox;
+  background-color: #609090;
+
+}
+
+.treeview {
+  text-align: left;
+  grid-area: treeview;
   overflow-y: scroll;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
   background-color: #906060;
 }
 
 .node-view {
   display: flex;
-}
-
-.svg-view {
-  width: 100%;
-  height: 100%;
 }
